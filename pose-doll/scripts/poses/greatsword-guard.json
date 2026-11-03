@@ -1,0 +1,68 @@
+{
+  "name": "greatsword-guard",
+  "intent": "middle guard with a two-handed sword: both hands on the hilt in front of the navel (right hand just below the guard, left hand near the pommel), the blade pointing forward and up toward an opponent",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "chest": {
+      "bend": 13
+    },
+    "rightShoulder": {
+      "raise": 42,
+      "dir": -32
+    },
+    "rightElbow": {
+      "bend": 36
+    },
+    "rightWrist": {
+      "grip": 90
+    },
+    "leftShoulder": {
+      "raise": 37,
+      "dir": -46
+    },
+    "leftElbow": {
+      "bend": 35,
+      "twist": -27
+    },
+    "leftWrist": {
+      "grip": 90
+    },
+    "leftHip": {
+      "raise": 24,
+      "dir": 5
+    },
+    "leftKnee": {
+      "bend": 30
+    },
+    "rightHip": {
+      "raise": 20,
+      "dir": 170
+    },
+    "rightKnee": {
+      "bend": 26
+    },
+    "rightAnkle": {
+      "bend": -12
+    },
+    "spine": {
+      "bend": 6
+    },
+    "head": {
+      "nod": -8
+    },
+    "leftAnkle": {
+      "bend": 4
+    }
+  },
+  "props": [
+    {
+      "type": "greatsword",
+      "hands": [
+        "right",
+        "left"
+      ]
+    }
+  ]
+}

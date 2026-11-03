@@ -1,0 +1,52 @@
+{
+  "name": "sit",
+  "intent": "sitting upright on an unseen chair, hands resting on the knees",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "leftHip": {
+      "raise": 90,
+      "dir": 5
+    },
+    "leftKnee": {
+      "bend": 90
+    },
+    "rightHip": {
+      "raise": 90,
+      "dir": 5
+    },
+    "rightKnee": {
+      "bend": 90
+    },
+    "leftShoulder": {
+      "raise": 34,
+      "dir": 8
+    },
+    "leftElbow": {
+      "bend": 42
+    },
+    "rightShoulder": {
+      "raise": 30,
+      "dir": 14
+    },
+    "rightElbow": {
+      "bend": 48
+    },
+    "spine": {
+      "bend": -6
+    },
+    "chest": {
+      "bend": 12
+    },
+    "head": {
+      "nod": 6
+    },
+    "leftWrist": {
+      "grip": 30
+    },
+    "rightWrist": {
+      "grip": 30
+    }
+  }
+}

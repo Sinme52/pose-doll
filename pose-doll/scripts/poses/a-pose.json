@@ -1,0 +1,15 @@
+{
+  "name": "a-pose",
+  "intent": "standing in a symmetric A-pose for 3D modeling, arms straight and angled down away from the body, feet slightly apart",
+  "camera": { "view": "front", "elevation": 0 },
+  "joints": {
+    "leftShoulder": { "raise": 40, "dir": 90 },
+    "rightShoulder": { "raise": 40, "dir": 90 },
+    "leftElbow": { "bend": 5 },
+    "rightElbow": { "bend": 5 },
+    "leftWrist": { "grip": 10 },
+    "rightWrist": { "grip": 10 },
+    "leftHip": { "raise": 7, "dir": 90 },
+    "rightHip": { "raise": 7, "dir": 90 }
+  }
+}

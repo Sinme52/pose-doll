@@ -1,0 +1,52 @@
+{
+  "name": "crouch",
+  "intent": "crouching low on both feet, ready to spring",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "bend": 28
+    },
+    "head": {
+      "nod": -34
+    },
+    "leftHip": {
+      "raise": 100,
+      "dir": 15
+    },
+    "leftKnee": {
+      "bend": 130
+    },
+    "leftAnkle": {
+      "bend": 25
+    },
+    "rightHip": {
+      "raise": 95,
+      "dir": 20
+    },
+    "rightKnee": {
+      "bend": 125
+    },
+    "rightAnkle": {
+      "bend": 25
+    },
+    "leftShoulder": {
+      "raise": 30,
+      "dir": 12
+    },
+    "leftElbow": {
+      "bend": 50
+    },
+    "rightShoulder": {
+      "raise": 22,
+      "dir": 20
+    },
+    "rightElbow": {
+      "bend": 60
+    },
+    "chest": {
+      "bend": 14
+    }
+  }
+}

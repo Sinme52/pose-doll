@@ -1,0 +1,57 @@
+{
+  "name": "stand-ready",
+  "intent": "standing still, feet slightly apart, holding a rifle at the ready low in front of the body with both hands (right hand on the grip, left hand under the barrel, muzzle pointing forward and slightly down)",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "chest": {
+      "bend": 10
+    },
+    "rightShoulder": {
+      "raise": 15,
+      "dir": 20
+    },
+    "rightElbow": {
+      "bend": 80
+    },
+    "rightWrist": {
+      "grip": 70
+    },
+    "leftShoulder": {
+      "raise": 48,
+      "dir": -22
+    },
+    "leftElbow": {
+      "bend": 30
+    },
+    "leftWrist": {
+      "grip": 60
+    },
+    "leftHip": {
+      "raise": 5,
+      "dir": 90,
+      "twist": 8
+    },
+    "rightHip": {
+      "raise": 5,
+      "dir": 90,
+      "twist": 8
+    },
+    "spine": {
+      "bend": 5
+    },
+    "head": {
+      "nod": -6
+    }
+  },
+  "props": [
+    {
+      "type": "rifle",
+      "hands": [
+        "right",
+        "left"
+      ]
+    }
+  ]
+}

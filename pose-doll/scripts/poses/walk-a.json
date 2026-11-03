@@ -1,0 +1,62 @@
+{
+  "name": "walk-a",
+  "intent": "walking mid-stride, the character's own left leg forward",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "twist": -6,
+      "bend": 5
+    },
+    "chest": {
+      "twist": 8,
+      "bend": 6
+    },
+    "leftHip": {
+      "raise": 14,
+      "dir": 0
+    },
+    "leftKnee": {
+      "bend": 4
+    },
+    "leftAnkle": {
+      "bend": 8
+    },
+    "rightHip": {
+      "raise": 14,
+      "dir": 180
+    },
+    "rightKnee": {
+      "bend": 32
+    },
+    "rightShoulder": {
+      "raise": 21,
+      "dir": 22,
+      "twist": -12
+    },
+    "rightElbow": {
+      "bend": 32
+    },
+    "leftShoulder": {
+      "raise": 17,
+      "dir": 155,
+      "twist": -8
+    },
+    "leftElbow": {
+      "bend": 20
+    },
+    "rightAnkle": {
+      "bend": -35
+    },
+    "head": {
+      "nod": -5
+    },
+    "rightWrist": {
+      "grip": 35
+    },
+    "leftWrist": {
+      "grip": 35
+    }
+  }
+}

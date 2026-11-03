@@ -1,0 +1,76 @@
+{
+  "name": "walk-sword-shield-a",
+  "intent": "walking mid-stride with a one-handed sword held upright in the right hand at the ready, a shield on the left forearm held up in front of the chest, its face toward the front; the character's own left leg forward",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "twist": -4,
+      "bend": 5
+    },
+    "chest": {
+      "twist": -4,
+      "bend": 6
+    },
+    "rightShoulder": {
+      "raise": 25,
+      "dir": 20
+    },
+    "rightElbow": {
+      "bend": 80
+    },
+    "rightWrist": {
+      "grip": 90
+    },
+    "leftShoulder": {
+      "raise": 65,
+      "dir": 11,
+      "twist": -85
+    },
+    "leftElbow": {
+      "bend": 107,
+      "twist": 64
+    },
+    "leftWrist": {
+      "grip": 80
+    },
+    "leftHip": {
+      "raise": 14,
+      "dir": 0
+    },
+    "leftKnee": {
+      "bend": 4
+    },
+    "leftAnkle": {
+      "bend": 8
+    },
+    "rightHip": {
+      "raise": 14,
+      "dir": 180
+    },
+    "rightKnee": {
+      "bend": 32
+    },
+    "rightAnkle": {
+      "bend": -35
+    },
+    "head": {
+      "nod": -6
+    }
+  },
+  "props": [
+    {
+      "type": "sword",
+      "hands": [
+        "right"
+      ]
+    },
+    {
+      "type": "shield",
+      "hands": [
+        "left"
+      ]
+    }
+  ]
+}

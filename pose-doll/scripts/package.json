@@ -1,0 +1,12 @@
+{
+  "name": "pose-doll",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Posable mannequin for pose reference images: browser editor + headless CLI renderer (three.js subset bundled in node_modules/three)",
+  "scripts": {
+    "serve": "node server.mjs",
+    "render": "node render.mjs",
+    "test": "node --test test/*.test.mjs && python3 -m unittest discover -s test -p 'test_*.py'"
+  }
+}

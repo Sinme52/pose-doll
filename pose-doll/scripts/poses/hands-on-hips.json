@@ -1,0 +1,61 @@
+{
+  "name": "hands-on-hips",
+  "intent": "confident stance with both hands on the hips",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "head": {
+      "nod": -8,
+      "tilt": -4
+    },
+    "leftShoulder": {
+      "raise": 50,
+      "dir": 115,
+      "twist": -65
+    },
+    "leftElbow": {
+      "bend": 90
+    },
+    "leftWrist": {
+      "grip": 30,
+      "bend": -25
+    },
+    "rightShoulder": {
+      "raise": 50,
+      "dir": 115,
+      "twist": -65
+    },
+    "rightElbow": {
+      "bend": 90
+    },
+    "rightWrist": {
+      "grip": 30,
+      "bend": -25
+    },
+    "leftHip": {
+      "raise": 10,
+      "dir": 30,
+      "twist": 12
+    },
+    "rightHip": {
+      "raise": 4,
+      "dir": 110,
+      "twist": 8
+    },
+    "root": {
+      "roll": -3
+    },
+    "spine": {
+      "side": 4,
+      "bend": -2
+    },
+    "chest": {
+      "bend": -5,
+      "side": 2
+    },
+    "leftKnee": {
+      "bend": 12
+    }
+  }
+}

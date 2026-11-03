@@ -1,0 +1,59 @@
+{
+  "name": "kneel",
+  "intent": "kneeling on the right knee, left foot planted in front",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "bend": 4
+    },
+    "leftHip": {
+      "raise": 85,
+      "dir": 5
+    },
+    "leftKnee": {
+      "bend": 90
+    },
+    "leftAnkle": {
+      "bend": 0
+    },
+    "rightHip": {
+      "raise": 0,
+      "dir": 0
+    },
+    "rightKnee": {
+      "bend": 95
+    },
+    "rightAnkle": {
+      "bend": -40
+    },
+    "leftShoulder": {
+      "raise": 32,
+      "dir": 12
+    },
+    "leftElbow": {
+      "bend": 62
+    },
+    "rightShoulder": {
+      "raise": 10,
+      "dir": 40
+    },
+    "rightElbow": {
+      "bend": 25
+    },
+    "chest": {
+      "bend": 4
+    },
+    "head": {
+      "nod": -4,
+      "tilt": 3
+    },
+    "leftWrist": {
+      "grip": 40
+    },
+    "rightWrist": {
+      "grip": 35
+    }
+  }
+}

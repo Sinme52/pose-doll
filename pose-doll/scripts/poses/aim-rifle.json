@@ -1,0 +1,54 @@
+{
+  "name": "aim-rifle",
+  "intent": "aiming a long gun at the shoulder, looking down the sights straight ahead",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "twist": 0,
+      "bend": 6
+    },
+    "chest": {
+      "bend": 10
+    },
+    "head": {
+      "nod": 10,
+      "tilt": -10
+    },
+    "rightShoulder": {
+      "raise": 76,
+      "dir": 55
+    },
+    "rightElbow": {
+      "bend": 120
+    },
+    "rightWrist": {
+      "grip": 70
+    },
+    "leftShoulder": {
+      "raise": 92,
+      "dir": -8
+    },
+    "leftElbow": {
+      "bend": 25
+    },
+    "leftWrist": {
+      "grip": 60
+    },
+    "leftHip": {
+      "raise": 12,
+      "dir": 20
+    },
+    "leftKnee": {
+      "bend": 12
+    },
+    "rightHip": {
+      "raise": 12,
+      "dir": 160
+    },
+    "rightKnee": {
+      "bend": 5
+    }
+  }
+}

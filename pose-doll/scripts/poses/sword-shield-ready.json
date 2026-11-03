@@ -1,0 +1,72 @@
+{
+  "name": "sword-shield-ready",
+  "intent": "standing guard with a one-handed sword held upright in the right hand at the ready, a shield on the left forearm held up in front of the chest, its face toward the front, left foot slightly forward",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "chest": {
+      "twist": -8,
+      "bend": 6
+    },
+    "head": {
+      "nod": -2
+    },
+    "rightShoulder": {
+      "raise": 25,
+      "dir": 20
+    },
+    "rightElbow": {
+      "bend": 80
+    },
+    "rightWrist": {
+      "grip": 90
+    },
+    "leftShoulder": {
+      "raise": 65,
+      "dir": 11,
+      "twist": -85
+    },
+    "leftElbow": {
+      "bend": 107,
+      "twist": 64
+    },
+    "leftWrist": {
+      "grip": 80
+    },
+    "leftHip": {
+      "raise": 18,
+      "dir": 0
+    },
+    "leftKnee": {
+      "bend": 20
+    },
+    "rightHip": {
+      "raise": 14,
+      "dir": 165
+    },
+    "rightKnee": {
+      "bend": 16
+    },
+    "rightAnkle": {
+      "bend": -10
+    },
+    "spine": {
+      "bend": 5
+    }
+  },
+  "props": [
+    {
+      "type": "sword",
+      "hands": [
+        "right"
+      ]
+    },
+    {
+      "type": "shield",
+      "hands": [
+        "left"
+      ]
+    }
+  ]
+}

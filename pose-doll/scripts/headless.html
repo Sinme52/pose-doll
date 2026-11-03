@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>pose-doll headless</title>
+<script type="importmap">{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }</script>
+<style>html,body{margin:0;background:transparent}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+import { Stage } from './src/stage.js';
+const stage = new Stage(document.getElementById('c'), { preserve: true });
+window.__stage = stage;
+// called by render.mjs: returns the PNG (data URL) and the English description
+window.renderPose = async (pose, opts = {}) => {
+  await stage.setModel(opts.model || null);
+  stage.setSize(opts.width || 1024, opts.height || 1024);
+  stage.setBackground(opts.background ?? '#ffffff');
+  let un = null;
+  if (opts.uncross) { un = stage.uncrossLegs(pose); pose = un.pose; }
+  const p = stage.setPose(pose, { style: opts.style || 'color', ground: !!opts.ground });
+  stage.render();
+  const d = stage.describe();
+  const png = stage.renderer.domElement.toDataURL('image/png');
+  const layers = opts.layers && opts.layers.length ? stage.renderLayers(opts.layers) : {};
+  return { png, description: d.text, facts: d.facts, camera: stage.cameraSpec, unknown: p.unknown,
+    pose, uncrossed: un ? un.changed : false, warnings: d.facts.warnings || [], layers };
+};
+window.ready = true;
+</script></body></html>

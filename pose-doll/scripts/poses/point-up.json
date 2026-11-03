@@ -1,0 +1,55 @@
+{
+  "name": "point-up",
+  "intent": "pointing the right index finger up and forward while explaining something",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "head": {
+      "nod": -6,
+      "tilt": 6,
+      "turn": 6
+    },
+    "rightShoulder": {
+      "raise": 60,
+      "dir": 35
+    },
+    "rightElbow": {
+      "bend": 105
+    },
+    "rightWrist": {
+      "grip": 100,
+      "point": 1,
+      "bend": -10
+    },
+    "leftShoulder": {
+      "raise": 15,
+      "dir": 60
+    },
+    "leftElbow": {
+      "bend": 70
+    },
+    "leftWrist": {
+      "grip": 40
+    },
+    "leftHip": {
+      "raise": 6,
+      "dir": 90
+    },
+    "rightHip": {
+      "raise": 4,
+      "dir": 60
+    },
+    "rightKnee": {
+      "bend": 8
+    },
+    "spine": {
+      "twist": 6,
+      "bend": -2
+    },
+    "chest": {
+      "bend": -3,
+      "twist": 4
+    }
+  }
+}

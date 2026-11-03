@@ -1,0 +1,60 @@
+{
+  "name": "run",
+  "intent": "running at full speed, the character's own left knee driving forward",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "bend": 10,
+      "twist": -8
+    },
+    "chest": {
+      "twist": 10,
+      "bend": 9
+    },
+    "leftHip": {
+      "raise": 60,
+      "dir": 0
+    },
+    "leftKnee": {
+      "bend": 85
+    },
+    "leftAnkle": {
+      "bend": 10
+    },
+    "rightHip": {
+      "raise": 30,
+      "dir": 180
+    },
+    "rightKnee": {
+      "bend": 75
+    },
+    "rightAnkle": {
+      "bend": -35
+    },
+    "rightShoulder": {
+      "raise": 50,
+      "dir": 5
+    },
+    "rightElbow": {
+      "bend": 95
+    },
+    "rightWrist": {
+      "grip": 80
+    },
+    "leftShoulder": {
+      "raise": 45,
+      "dir": 175
+    },
+    "leftElbow": {
+      "bend": 85
+    },
+    "leftWrist": {
+      "grip": 80
+    },
+    "head": {
+      "nod": -17
+    }
+  }
+}

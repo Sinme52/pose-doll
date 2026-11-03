@@ -1,0 +1,52 @@
+{
+  "name": "victory",
+  "intent": "victory pose, both fists raised high in a V",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "head": {
+      "nod": -22
+    },
+    "leftShoulder": {
+      "raise": 155,
+      "dir": 62
+    },
+    "leftElbow": {
+      "bend": 10
+    },
+    "leftWrist": {
+      "grip": 100
+    },
+    "rightShoulder": {
+      "raise": 150,
+      "dir": 75
+    },
+    "rightElbow": {
+      "bend": 18
+    },
+    "rightWrist": {
+      "grip": 100
+    },
+    "leftHip": {
+      "raise": 10,
+      "dir": 90
+    },
+    "rightHip": {
+      "raise": 10,
+      "dir": 90
+    },
+    "spine": {
+      "bend": -8
+    },
+    "chest": {
+      "bend": -6
+    },
+    "leftKnee": {
+      "bend": 10
+    },
+    "rightKnee": {
+      "bend": 8
+    }
+  }
+}

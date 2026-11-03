@@ -1,0 +1,69 @@
+{
+  "name": "walk-ready-a",
+  "intent": "walking mid-stride while holding a rifle at the ready low in front of the body with both hands (right hand on the grip, left hand under the barrel, muzzle pointing forward and slightly down); the character's own left leg forward",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "twist": -4,
+      "bend": 5
+    },
+    "chest": {
+      "bend": 10,
+      "twist": 4
+    },
+    "rightShoulder": {
+      "raise": 15,
+      "dir": 20
+    },
+    "rightElbow": {
+      "bend": 80
+    },
+    "rightWrist": {
+      "grip": 70
+    },
+    "leftShoulder": {
+      "raise": 48,
+      "dir": -22
+    },
+    "leftElbow": {
+      "bend": 30
+    },
+    "leftWrist": {
+      "grip": 60
+    },
+    "leftHip": {
+      "raise": 14,
+      "dir": 0
+    },
+    "leftKnee": {
+      "bend": 4
+    },
+    "leftAnkle": {
+      "bend": 8
+    },
+    "rightHip": {
+      "raise": 14,
+      "dir": 180
+    },
+    "rightKnee": {
+      "bend": 32
+    },
+    "rightAnkle": {
+      "bend": -35
+    },
+    "head": {
+      "nod": -6
+    }
+  },
+  "props": [
+    {
+      "type": "rifle",
+      "hands": [
+        "right",
+        "left"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "stand",
+  "intent": "standing relaxed with the weight on the right leg, the left knee slightly bent, hips and shoulders tilted the opposite ways",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "leftShoulder": {
+      "raise": 12,
+      "dir": 60,
+      "twist": -15
+    },
+    "rightShoulder": {
+      "raise": 10,
+      "dir": 55,
+      "twist": -15
+    },
+    "leftElbow": {
+      "bend": 22
+    },
+    "rightElbow": {
+      "bend": 18
+    },
+    "leftHip": {
+      "raise": 9,
+      "dir": 20,
+      "twist": 12
+    },
+    "rightHip": {
+      "raise": 3,
+      "dir": 120,
+      "twist": 6
+    },
+    "root": {
+      "roll": -3
+    },
+    "spine": {
+      "bend": 2,
+      "side": 4,
+      "twist": -3
+    },
+    "chest": {
+      "bend": 2,
+      "side": 3
+    },
+    "head": {
+      "nod": 4,
+      "tilt": -3,
+      "turn": -4
+    },
+    "leftWrist": {
+      "grip": 35
+    },
+    "rightWrist": {
+      "grip": 35
+    },
+    "leftKnee": {
+      "bend": 14
+    },
+    "leftAnkle": {
+      "bend": -4
+    }
+  }
+}

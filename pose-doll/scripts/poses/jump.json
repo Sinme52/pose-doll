@@ -1,0 +1,62 @@
+{
+  "name": "jump",
+  "intent": "jumping joyfully in mid-air, both arms thrown up, knees tucked",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "root": {
+      "lift": 0.9
+    },
+    "spine": {
+      "bend": -8
+    },
+    "head": {
+      "nod": -14,
+      "tilt": 5
+    },
+    "leftShoulder": {
+      "raise": 150,
+      "dir": 50
+    },
+    "leftElbow": {
+      "bend": 22
+    },
+    "leftWrist": {
+      "grip": 100
+    },
+    "rightShoulder": {
+      "raise": 138,
+      "dir": 28
+    },
+    "rightElbow": {
+      "bend": 35
+    },
+    "rightWrist": {
+      "grip": 100
+    },
+    "leftHip": {
+      "raise": 55,
+      "dir": 5
+    },
+    "leftKnee": {
+      "bend": 95
+    },
+    "leftAnkle": {
+      "bend": -30
+    },
+    "rightHip": {
+      "raise": 15,
+      "dir": 180
+    },
+    "rightKnee": {
+      "bend": 100
+    },
+    "rightAnkle": {
+      "bend": -30
+    },
+    "chest": {
+      "bend": -6
+    }
+  }
+}

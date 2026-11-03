@@ -1,0 +1,12 @@
+# outputs made when the skill is run from this folder
+pose-doll-out/
+pose-doll-poses/
+__pycache__/
+*.pyc
+*.zip
+.env
+.DS_Store
+# only the vendored three.js subset is tracked under node_modules
+pose-doll/scripts/node_modules/*
+!pose-doll/scripts/node_modules/three/
+pose-doll/scripts/package-lock.json

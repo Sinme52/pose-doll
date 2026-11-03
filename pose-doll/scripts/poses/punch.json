@@ -1,0 +1,57 @@
+{
+  "name": "punch",
+  "intent": "throwing a straight punch with the right fist, left fist guarding the face",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "spine": {
+      "twist": 20,
+      "bend": 10
+    },
+    "chest": {
+      "twist": 15,
+      "bend": 12
+    },
+    "rightShoulder": {
+      "raise": 88,
+      "dir": 0
+    },
+    "rightElbow": {
+      "bend": 5
+    },
+    "rightWrist": {
+      "grip": 100
+    },
+    "leftShoulder": {
+      "raise": 35,
+      "dir": 20
+    },
+    "leftElbow": {
+      "bend": 135
+    },
+    "leftWrist": {
+      "grip": 100
+    },
+    "leftHip": {
+      "raise": 25,
+      "dir": 0
+    },
+    "leftKnee": {
+      "bend": 25
+    },
+    "rightHip": {
+      "raise": 20,
+      "dir": 170
+    },
+    "rightKnee": {
+      "bend": 5
+    },
+    "rightAnkle": {
+      "bend": -15
+    },
+    "head": {
+      "nod": 2
+    }
+  }
+}

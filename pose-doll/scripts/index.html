@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pose Doll</title>
+<script type="importmap">{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }</script>
+<style>
+  :root { --bg: #f4f3f1; --panel: #ffffff; --ink: #222; --muted: #6b6864; --line: #dcd9d4; --accent: #2f6fe0; --red: #e0422f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1d1c1b; --panel: #262523; --ink: #eee; --muted: #a29e98; --line: #3a3835; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; padding: 16px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .view { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .view canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; touch-action: none; cursor: grab; }
+  .hint { position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: #6b6864; pointer-events: none; }
+  aside { display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .card h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+  label.row { display: grid; grid-template-columns: 64px 1fr 48px; gap: 8px; align-items: center; margin: 4px 0; font-size: 13px; }
+  label.row input[type=number] { width: 48px; }
+  input[type=range] { width: 100%; }
+  select, button, input[type=number] { font: inherit; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  textarea { width: 100%; min-height: 180px; font: 12px/1.4 ui-monospace, monospace; border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: var(--panel); color: var(--ink); }
+  .desc { font-size: 12.5px; color: var(--muted); white-space: pre-wrap; }
+  .joints { display: flex; flex-wrap: wrap; gap: 4px; }
+  .joints button { font-size: 12px; padding: 2px 6px; }
+  .joints button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .joints button.L { box-shadow: inset 3px 0 0 var(--accent); }
+  .joints button.R { box-shadow: inset 3px 0 0 var(--red); }
+  .help { font-size: 11.5px; color: var(--muted); margin: -2px 0 6px 72px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pose Doll</h1>
+  <select id="preset" title="プリセット"></select>
+  <select id="view" title="カメラ"></select>
+  <label>頭身 <input id="heads" type="number" min="2" max="9" step="0.5" value="7"></label>
+  <select id="style"><option value="color">色分け（左=青 右=赤）</option><option value="plain">グレー</option></select>
+  <label><input id="ground" type="checkbox"> 影</label>
+  <button id="mirror" title="全身の左右を入れ替え（持ち物も反対の手へ）">左右反転</button>
+  <button id="mirrorLegs" title="脚だけ左右を入れ替え（腕・持ち物はそのまま。歩行の a→b に）">脚だけ反転</button>
+  <button id="reset">リセット</button>
+  <label title="Meshy などでリギング済みのキャラ GLB">3Dモデル <input id="glb" type="file" accept=".glb" style="max-width:180px"></label>
+  <button id="unglb">人形に戻す</button>
+  <button id="png" class="primary">PNG保存</button>
+  <button id="saveProject" class="primary" title="サーバーの保存先（作業フォルダの pose-doll-poses/）に名前を付けて保存。Claude はその名前でポーズを使える" style="display:none">プロジェクトに保存</button>
+  <button id="save">JSON保存</button>
+  <button id="exportBtn" title="gpt-image 以外の画像生成ツール用：OpenPose・深度・マスク画像と OpenPose の関節 JSON を保存">書き出し</button>
+</header>
+<main>
+  <div>
+    <div class="view"><canvas id="c"></canvas><div class="hint">体の部位をクリックで選択 ・ 背景ドラッグでカメラ回転</div></div>
+    <div class="card" style="margin-top:12px"><h2>AI向けポーズ説明（画像上の左右で記述）</h2><div id="desc" class="desc"></div></div>
+  </div>
+  <aside>
+    <div class="card"><h2>関節</h2><div id="joints" class="joints"></div></div>
+    <div class="card"><h2 id="jtitle">—</h2><div id="sliders"></div></div>
+    <div class="card"><h2>持ち物</h2><div id="props"></div><button id="addProp" style="margin-top:6px">＋ 持ち物を追加</button></div>
+    <div class="card"><h2>ポーズ JSON（編集すると反映）</h2><textarea id="json" spellcheck="false"></textarea>
+      <div style="display:flex;gap:6px;margin-top:6px"><button id="copy">コピー</button><input id="intent" placeholder="intent: 例) 走りながら振り返る" style="flex:1;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)"></div>
+    </div>
+  </aside>
+</main>
+<script type="module">
+import { Stage } from './src/stage.js';
+import { JOINT_DEFS, VIEWS, PARAM_HELP, mirrorPose, resolveCamera, PROP_TYPES, propDef } from './src/doll.js';
+
+const $ = (id) => document.getElementById(id);
+const canvas = $('c');
+const stage = new Stage(canvas, { size: 1024, preserve: true });
+let pose = { name: 'pose', intent: '', camera: { view: 'facing-lower-left' }, build: { headsTall: 7 }, joints: {} };
+let selected = 'rightShoulder';
+
+const JA = { root: '全身', spine: '腰', chest: '胸', head: '頭', Shoulder: '肩', Elbow: '肘', Wrist: '手', Hip: '股関節', Knee: '膝', Ankle: '足首' };
+const jname = (n) => n === 'root' || n === 'spine' || n === 'chest' || n === 'head' ? JA[n]
+  : (n.startsWith('left') ? '左' : '右') + JA[n.replace(/^(left|right)/, '')];
+const PJA = { yaw: '向き', pitch: '前傾', roll: '横傾き', lift: '浮き', bend: '曲げ', side: '横', twist: 'ひねり', nod: 'うなずき', turn: '振り向き', tilt: '傾げ', raise: '上げ', dir: '方向', grip: '握り', point: '指差し' };
+
+// held items: type, the hand(s) holding it, and a turn angle for one-handed blades / shields
+const HANDJA = { right: '右手', left: '左手' };
+function buildPropsUi() {
+  const box = $('props');
+  box.innerHTML = '';
+  (pose.props || []).forEach((p, i) => {
+    const def = propDef(p.type) || { hands: [1, 2], label: p.type };
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0';
+    const types = PROP_TYPES.map((t) => `<option value="${t}" ${t === p.type ? 'selected' : ''}>${t}（${propDef(t).label}）</option>`).join('');
+    const hand = (v, allowNone) => (allowNone ? '<option value="">—</option>' : '') + ['right', 'left'].map((h) => `<option value="${h}" ${h === v ? 'selected' : ''}>${HANDJA[h]}</option>`).join('');
+    row.innerHTML = `<select data-k="type" style="max-width:190px">${types}</select>
+      <select data-k="h0">${hand(p.hands[0])}</select>
+      ${def.hands[1] > 1 ? `<select data-k="h1" title="支える手">${hand(p.hands[1], def.hands[0] < 2)}</select>` : ''}
+      <label title="片手剣・盾を手の甲の軸で回す（度）">回転 <input data-k="angle" type="number" step="15" value="${p.angle || 0}" style="width:56px"></label>
+      <button data-k="del" title="削除">×</button>`;
+    row.onchange = (e) => {
+      const k = e.target.dataset.k;
+      const cur = { ...pose.props[i] };
+      if (k === 'type') {
+        cur.type = e.target.value;
+        const d = propDef(cur.type);
+        cur.hands = d.hands[0] >= 2 ? [cur.hands[0], cur.hands[0] === 'right' ? 'left' : 'right'] : d.hands[1] < 2 ? [cur.hands[0]] : cur.hands;
+        delete cur.length;
+      }
+      if (k === 'h0') cur.hands = [e.target.value, ...(cur.hands[1] && cur.hands[1] !== e.target.value ? [cur.hands[1]] : [])];
+      if (k === 'h1') cur.hands = e.target.value && e.target.value !== cur.hands[0] ? [cur.hands[0], e.target.value] : [cur.hands[0]];
+      if (k === 'angle') { const a = Number(e.target.value) || 0; if (a) cur.angle = a; else delete cur.angle; }
+      pose.props = pose.props.map((q, j) => (j === i ? cur : q));
+      buildPropsUi();
+      refresh();
+    };
+    row.querySelector('[data-k=del]').onclick = () => { pose.props = pose.props.filter((_, j) => j !== i); buildPropsUi(); refresh(); };
+    box.appendChild(row);
+  });
+  if (!(pose.props || []).length) box.innerHTML = '<div class="desc">なし</div>';
+}
+
+function refresh({ json = true } = {}) {
+  stage.setPose(pose, { style: $('style').value, ground: $('ground').checked });
+  stage.render();
+  $('desc').textContent = stage.describe().lines.join('\n');
+  if (json) $('json').value = JSON.stringify(compact(pose), null, 2);
+}
+// drop zero / default values so the JSON stays short and readable
+function compact(p) {
+  const joints = {};
+  for (const [j, vals] of Object.entries(p.joints || {})) {
+    const out = {};
+    for (const [k, v] of Object.entries(vals)) if (JOINT_DEFS[j]?.params[k] && v !== JOINT_DEFS[j].params[k][2]) out[k] = v;
+    if (Object.keys(out).length) joints[j] = out;
+  }
+  return { ...p, joints };
+}
+
+function buildJointButtons() {
+  $('joints').innerHTML = '';
+  for (const n of Object.keys(JOINT_DEFS)) {
+    const b = document.createElement('button');
+    b.textContent = jname(n);
+    b.className = (n === selected ? 'on ' : '') + (n.startsWith('left') ? 'L' : n.startsWith('right') ? 'R' : '');
+    b.onclick = () => select(n);
+    $('joints').appendChild(b);
+  }
+}
+function select(n) {
+  selected = n;
+  buildJointButtons();
+  $('jtitle').textContent = `${jname(n)}  (${n})`;
+  const box = $('sliders');
+  box.innerHTML = '';
+  for (const [p, [min, max, dflt]] of Object.entries(JOINT_DEFS[n].params)) {
+    const cur = pose.joints[n]?.[p] ?? dflt;
+    const row = document.createElement('label');
+    row.className = 'row';
+    const step = p === 'lift' ? 0.05 : 1;
+    row.innerHTML = `<span>${PJA[p] || p}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${cur}"><input type="number" min="${min}" max="${max}" step="${step}" value="${cur}">`;
+    const [range, num] = row.querySelectorAll('input');
+    const set = (v) => {
+      pose.joints[n] = { ...(pose.joints[n] || {}), [p]: Number(v) };
+      range.value = num.value = v;
+      refresh();
+    };
+    range.oninput = () => set(range.value);
+    num.onchange = () => set(num.value);
+    box.appendChild(row);
+    const help = PARAM_HELP[`${n}.${p}`] || PARAM_HELP[p];
+    if (help) { const h = document.createElement('div'); h.className = 'help'; h.textContent = help; box.appendChild(h); }
+  }
+}
+
+// presets
+fetch('./poses/').then((r) => r.json()).then((names) => {
+  $('preset').innerHTML = '<option value="">プリセット…</option>' + names.map((n) => `<option>${n.replace('.json', '')}</option>`).join('');
+});
+$('preset').onchange = async () => {
+  if (!$('preset').value) return;
+  const p = await (await fetch(`./poses/${$('preset').value}.json`)).json();
+  pose = { build: { headsTall: Number($('heads').value) }, ...p, joints: p.joints || {} };
+  pose.build = { ...(pose.build || {}), headsTall: Number($('heads').value) };
+  $('intent').value = pose.intent || '';
+  syncCameraUi();
+  select(selected);
+  buildPropsUi();
+  refresh();
+};
+$('view').innerHTML = Object.keys(VIEWS).map((v) => `<option>${v}</option>`).join('') + '<option value="custom">custom</option>';
+function syncCameraUi() { $('view').value = pose.camera?.view && VIEWS[pose.camera.view] && pose.camera.azimuth === undefined ? pose.camera.view : (pose.camera?.view && VIEWS[pose.camera.view] ? pose.camera.view : 'custom'); }
+$('view').onchange = () => { if ($('view').value !== 'custom') { pose.camera = { ...pose.camera, view: $('view').value }; delete pose.camera.azimuth; delete pose.camera.elevation; } refresh(); };
+$('heads').onchange = () => { pose.build = { ...(pose.build || {}), headsTall: Number($('heads').value) }; refresh(); };
+$('style').onchange = () => refresh();
+$('ground').onchange = () => refresh();
+$('mirror').onclick = () => { pose = mirrorPose(pose, 'all'); setTimeout(buildPropsUi); pose.name = pose.name.replace(/-mirrored-mirrored$/, ''); $('intent').value = pose.intent || ''; select(selected); refresh(); };
+$('mirrorLegs').onclick = () => { pose = mirrorPose(pose, 'legs'); pose.name = pose.name.replace(/-legs-mirrored-legs-mirrored$/, ''); $('intent').value = pose.intent || ''; select(selected); refresh(); };
+$('reset').onclick = () => { pose = { ...pose, joints: {}, props: [] }; select(selected); buildPropsUi(); refresh(); };
+$('addProp').onclick = () => { pose.props = [...(pose.props || []), { type: 'sword', hands: ['right'] }]; buildPropsUi(); refresh(); };
+$('intent').oninput = () => { pose.intent = $('intent').value; refresh(); };
+$('json').onchange = () => {
+  try { pose = JSON.parse($('json').value); pose.joints ||= {}; $('heads').value = pose.build?.headsTall ?? 7; $('intent').value = pose.intent || ''; syncCameraUi(); select(selected); buildPropsUi(); refresh({ json: false }); }
+  catch (e) { alert('JSON エラー: ' + e.message); }
+};
+const download = (name, url) => { const a = document.createElement('a'); a.href = url; a.download = name; a.click(); };
+$('png').onclick = () => { stage.render(); download(`${pose.name || 'pose'}.png`, canvas.toDataURL('image/png')); };
+$('save').onclick = () => download(`${pose.name || 'pose'}.json`, URL.createObjectURL(new Blob([JSON.stringify(compact(pose), null, 2)], { type: 'application/json' })));
+$('exportBtn').onclick = () => {
+  refresh();
+  const name = pose.name || 'pose';
+  const L = stage.renderLayers(['openpose', 'depth', 'mask']);
+  download(`${name}.png`, canvas.toDataURL('image/png'));
+  for (const k of ['openpose', 'depth', 'mask']) download(`${name}.${k}.png`, L[k]);
+  download(`${name}.openpose.json`, URL.createObjectURL(new Blob([JSON.stringify(L.keypoints)], { type: 'application/json' })));
+};
+// "save to project": only when the editor is served by server.mjs (not as a static page)
+fetch('./api/info').then((r) => (r.ok ? r.json() : null)).then((info) => {
+  if (!info) return;
+  $('saveProject').style.display = '';
+  $('saveProject').title += `\n保存先: ${info.saveDir}`;
+}).catch(() => {});
+$('saveProject').onclick = async () => {
+  const name = prompt('保存する名前（英数字と . _ -）', pose.name && pose.name !== 'pose' ? pose.name : '');
+  if (!name) return;
+  const r = await fetch('./api/save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, pose: compact(pose) }) });
+  const j = await r.json();
+  if (!j.ok) { alert('保存できません: ' + j.error); return; }
+  pose.name = name;
+  refresh();
+  const names = await (await fetch('./poses/')).json();
+  $('preset').innerHTML = '<option value="">プリセット…</option>' + names.map((n) => `<option>${n.replace('.json', '')}</option>`).join('');
+  alert(`保存しました: ${j.path}\nClaude には「${name} のポーズで」と伝えれば使えます。`);
+};
+$('copy').onclick = () => navigator.clipboard?.writeText($('json').value);
+
+$('glb').onchange = async () => {
+  const f = $('glb').files[0];
+  if (!f) return;
+  try { await stage.setModel(URL.createObjectURL(f)); refresh(); }
+  catch (e) { alert('モデルを読み込めません: ' + e.message); }
+};
+$('unglb').onclick = async () => { $('glb').value = ''; await stage.setModel(null); refresh(); };
+
+// click a part to select it, drag the background to orbit the camera
+let drag = null;
+canvas.addEventListener('pointerdown', (e) => {
+  const part = stage.pick(e.clientX, e.clientY);
+  if (part) { select(part); return; }
+  const c = resolveCamera(pose.camera);
+  drag = { x: e.clientX, y: e.clientY, az: c.azimuth, el: c.elevation };
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const az = Math.round(drag.az - (e.clientX - drag.x) * 0.5);
+  const el = Math.max(-30, Math.min(85, Math.round(drag.el + (e.clientY - drag.y) * 0.4)));
+  pose.camera = { ...pose.camera, azimuth: ((az + 540) % 360) - 180, elevation: el };
+  $('view').value = 'custom';
+  refresh();
+});
+canvas.addEventListener('pointerup', () => { drag = null; });
+
+buildJointButtons();
+select(selected);
+buildPropsUi();
+refresh();
+</script>
+</body>
+</html>

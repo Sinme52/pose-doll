@@ -1,0 +1,63 @@
+{
+  "name": "hip-fire",
+  "intent": "ready stance holding a rifle at the ready low in front of the body with both hands (right hand on the grip, left hand under the barrel, muzzle pointing forward and slightly down)",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "rightShoulder": {
+      "raise": 15,
+      "dir": 20
+    },
+    "rightElbow": {
+      "bend": 80
+    },
+    "rightWrist": {
+      "grip": 70
+    },
+    "leftShoulder": {
+      "raise": 48,
+      "dir": -22
+    },
+    "leftElbow": {
+      "bend": 30
+    },
+    "leftWrist": {
+      "grip": 60
+    },
+    "leftHip": {
+      "raise": 10,
+      "dir": 45,
+      "twist": 10
+    },
+    "leftKnee": {
+      "bend": 10
+    },
+    "rightHip": {
+      "raise": 8,
+      "dir": 110,
+      "twist": 10
+    },
+    "rightKnee": {
+      "bend": 5
+    },
+    "chest": {
+      "bend": 10
+    },
+    "spine": {
+      "bend": 5
+    },
+    "head": {
+      "nod": -6
+    }
+  },
+  "props": [
+    {
+      "type": "rifle",
+      "hands": [
+        "right",
+        "left"
+      ]
+    }
+  ]
+}

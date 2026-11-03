@@ -1,0 +1,54 @@
+{
+  "name": "wave",
+  "intent": "waving cheerfully with the character's own right hand raised",
+  "camera": {
+    "view": "facing-lower-left"
+  },
+  "joints": {
+    "head": {
+      "tilt": 7,
+      "nod": 2
+    },
+    "rightShoulder": {
+      "raise": 135,
+      "dir": 75
+    },
+    "rightElbow": {
+      "bend": 55
+    },
+    "rightWrist": {
+      "grip": 0
+    },
+    "leftShoulder": {
+      "raise": 12,
+      "dir": 60,
+      "twist": -15
+    },
+    "leftElbow": {
+      "bend": 22
+    },
+    "leftHip": {
+      "raise": 8,
+      "dir": 20,
+      "twist": 10
+    },
+    "rightHip": {
+      "raise": 3,
+      "dir": 120
+    },
+    "spine": {
+      "side": -3,
+      "twist": 5
+    },
+    "chest": {
+      "side": -3,
+      "bend": 2
+    },
+    "leftWrist": {
+      "grip": 35
+    },
+    "leftKnee": {
+      "bend": 10
+    }
+  }
+}
