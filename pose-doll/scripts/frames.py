@@ -175,7 +175,7 @@ def main():
     ap.add_argument('--background', default='transparent', choices=('transparent', 'opaque', 'auto'))
     ap.add_argument('--quality', default='medium')
     ap.add_argument('--complexity', choices=('low', 'medium', 'high'),
-                    help='how much the model plans before drawing (GPT Image 2.6+; default: the API default)')
+                    help="how much the model plans before drawing (default: the gpt-image skill's default)")
     ap.add_argument('--model', help="image model ID (default: the gpt-image skill's default model)")
     ap.add_argument('--size', default='1024x1024')
     ap.add_argument('--fps', type=float, default=4)

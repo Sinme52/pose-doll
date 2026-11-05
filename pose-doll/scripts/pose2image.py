@@ -63,7 +63,7 @@ BACKGROUND = {'transparent': 'fully transparent background, no ground, no cast s
               'opaque': 'plain light background', 'auto': 'simple background'}
 
 
-# image skills, newest first: gpt-image (GPT Image 2.6 and later), then the older gpt-image-2-5
+# image skills, newest first: gpt-image, then the older gpt-image-2-5
 SKILL_NAMES = ('gpt-image', 'gpt-image-2-5')
 FALLBACK_MODEL = 'gpt-image-2.5-sunburst'  # only for old skills without 'edit' that also lack DEFAULT_MODEL
 
@@ -300,9 +300,9 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, comp
             cmd += ['--image', p]
         cmd += ['--prompt', prompt, '--quality', quality, '--size', size, '--format', 'png',
                 '--n', str(n), '--name', stem, '--out-dir', str(out_dir), '--meta-json', str(metaf)]
-        if model:  # otherwise the skill's own default (GPT Image 2.6 in the gpt-image skill)
+        if model:  # otherwise the skill's own default model
             cmd += ['--model', model]
-        if complexity:
+        if complexity:  # otherwise the skill's own default
             cmd += ['--complexity', complexity]
         if background != 'auto':
             cmd += ['--background', background]
@@ -395,7 +395,7 @@ def main():
     ap.add_argument('--background', default='opaque', choices=('transparent', 'opaque', 'auto'))
     ap.add_argument('--quality', default='medium')
     ap.add_argument('--complexity', choices=('low', 'medium', 'high'),
-                    help='how much the model plans before drawing (GPT Image 2.6+; default: the API default)')
+                    help="how much the model plans before drawing (default: the gpt-image skill's default)")
     ap.add_argument('--model', help="image model ID (default: the gpt-image skill's default model)")
     ap.add_argument('--n', type=int, default=1)
     ap.add_argument('--out-dir', default=str(OUT_ROOT), help='default: ./pose-doll-out (or $POSE_DOLL_OUT)')
