@@ -85,4 +85,7 @@ cd pose-doll/scripts && npm test   # Node のテストと Python のテスト
 
 ## ライセンス
 
-- 同梱の three.js は MIT ライセンスです（`pose-doll/scripts/node_modules/three/LICENSE`）。
+[MIT License](LICENSE)（Copyright (c) 2026 Sinme52）
+
+- スキルのフォルダにも同じ `pose-doll/LICENSE` を入れているので、zip で配布してもライセンス表記が残ります。
+- 同梱の three.js は、three.js authors による MIT ライセンスです（`pose-doll/scripts/node_modules/three/LICENSE`）。

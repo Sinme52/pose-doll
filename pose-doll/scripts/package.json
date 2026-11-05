@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Posable mannequin for pose reference images: browser editor + headless CLI renderer (three.js subset bundled in node_modules/three)",
+  "license": "MIT",
   "scripts": {
     "serve": "node server.mjs",
     "render": "node render.mjs",
