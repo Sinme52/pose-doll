@@ -421,10 +421,14 @@ def main():
     if args.dry_run:
         print(json.dumps({'pose_png': str(pose_png), 'prompt': prompt}, ensure_ascii=False, indent=2))
         return
-    saved, elapsed = generate(args.character, pose_png, prompt, out_dir, stem, consistency=args.consistency, model=args.model,
-                              quality=args.quality, complexity=args.complexity, size=args.size, background=args.background, n=args.n,
-                              meta={'rig': args.rig, 'pose': r['pose']},
-                              release_prompt=release_prompt_for(r['pose'], args.background))
+    try:
+        saved, elapsed = generate(args.character, pose_png, prompt, out_dir, stem, consistency=args.consistency, model=args.model,
+                                  quality=args.quality, complexity=args.complexity, size=args.size, background=args.background, n=args.n,
+                                  meta={'rig': args.rig, 'pose': r['pose']},
+                                  release_prompt=release_prompt_for(r['pose'], args.background))
+    except (RuntimeError, OSError, ValueError) as e:  # API / network errors: one line, no traceback
+        print(json.dumps({'ok': False, 'error': str(e), 'pose_png': str(pose_png)}, ensure_ascii=False), file=sys.stderr)
+        sys.exit(1)
     refs = [args.character, pose_png] + ([args.consistency] if args.consistency else [])
     sheets = [check_sheet(refs + [s], Path(s).with_suffix('.check.jpg')) for s in saved]
     print(json.dumps({'ok': True, 'files': saved, 'pose_png': str(pose_png), 'check_sheets': sheets,

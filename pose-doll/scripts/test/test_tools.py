@@ -221,3 +221,28 @@ class SkillDiscovery(unittest.TestCase):
                 os.environ.pop('GPT_IMAGE_SCRIPT', None)
             else:
                 os.environ['GPT_IMAGE_SCRIPT'] = old
+
+
+class CliErrors(unittest.TestCase):
+    """API failures print one JSON error line (no traceback) and exit 1."""
+
+    def test_generate_error_is_one_line(self):
+        import contextlib
+        import io
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            fake = {'png': f'{d}/p.png', 'description': 'D', 'pose': {}}
+            argv = ['pose2image.py', '--character', f'{d}/c.png', '--pose', 'stand', '--out-dir', d]
+            err = io.StringIO()
+            with mock.patch.object(sys, 'argv', argv), mock.patch.object(p2i, 'render_pose', return_value=fake), \
+                    mock.patch.object(p2i, 'generate', side_effect=RuntimeError('gpt-image edit failed: OpenAI API error 403: no access')), \
+                    contextlib.redirect_stderr(err):
+                with self.assertRaises(SystemExit) as cm:
+                    p2i.main()
+            self.assertEqual(cm.exception.code, 1)
+            lines = err.getvalue().strip().splitlines()
+            self.assertEqual(len(lines), 1, lines)
+            out = json.loads(lines[0])
+            self.assertEqual(out['ok'], False)
+            self.assertIn('403', out['error'])
+            self.assertNotIn('Traceback', err.getvalue())
