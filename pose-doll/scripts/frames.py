@@ -174,7 +174,9 @@ def main():
     ap.add_argument('--extra', default='')
     ap.add_argument('--background', default='transparent', choices=('transparent', 'opaque', 'auto'))
     ap.add_argument('--quality', default='medium')
-    ap.add_argument('--model', default='gpt-image-2.5-sunburst')
+    ap.add_argument('--complexity', choices=('low', 'medium', 'high'),
+                    help='how much the model plans before drawing (GPT Image 2.6+; default: the API default)')
+    ap.add_argument('--model', help="image model ID (default: the gpt-image skill's default model)")
     ap.add_argument('--size', default='1024x1024')
     ap.add_argument('--fps', type=float, default=4)
     ap.add_argument('--gif-sizes', default='256,64')
@@ -283,7 +285,8 @@ def main():
                                       background=args.background, has_props=bool(it['pose_json'].get('props')),
                                       consistency=bool(cons))
             saved, el = p2i.generate(fill_t(args.character, v), it['pose_png'], prompt, root / v, it['label'],
-                                     consistency=cons, model=args.model, quality=args.quality, size=args.size,
+                                     consistency=cons, model=args.model, quality=args.quality, complexity=args.complexity,
+                                     size=args.size,
                                      background=args.background, n=N,
                                      meta={'rig': args.rig, 'pose': it['pose_json'], 'view': it['view']},
                                      release_prompt=p2i.release_prompt_for(it['pose_json'], args.background))

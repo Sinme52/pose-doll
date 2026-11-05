@@ -89,6 +89,7 @@ import argparse, base64, json, sys
 from pathlib import Path
 PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
 HAS_EDIT = %(has_edit)s
+DEFAULT_MODEL = "gpt-image-test-default"
 CALLS = Path(%(calls)r)
 def load_api_key(): return "sk-test"
 def base_url(): return "http://mock"
@@ -106,7 +107,7 @@ def save_results(payload, out_dir, stem, fmt, meta):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "edit" and HAS_EDIT:
         ap = argparse.ArgumentParser(); ap.add_argument("cmd"); ap.add_argument("--image", action="append")
-        for k in ("--prompt", "--quality", "--model", "--size", "--format", "--n", "--name", "--out-dir", "--meta-json", "--background", "--release-prompt"):
+        for k in ("--prompt", "--quality", "--model", "--size", "--format", "--n", "--name", "--out-dir", "--meta-json", "--background", "--release-prompt", "--complexity"):
             ap.add_argument(k)
         a = ap.parse_args()
         CALLS.write_text(json.dumps({"mode": "cli", **{k: v for k, v in vars(a).items()}}))
@@ -120,9 +121,9 @@ if __name__ == "__main__":
 
 
 class SkillIntegration(unittest.TestCase):
-    """pose2image talks to the gpt-image-2-5 skill: its public 'edit' command when it has one, else its helpers."""
+    """pose2image talks to the gpt-image skill: its public 'edit' command when it has one, else its helpers."""
 
-    def _run(self, has_edit):
+    def _run(self, has_edit, **kw):
         with tempfile.TemporaryDirectory() as d:
             calls = f'{d}/calls.json'
             script = f'{d}/gpt_image.py'
@@ -134,7 +135,7 @@ class SkillIntegration(unittest.TestCase):
             p2i._EDIT_SUPPORT.clear()
             try:
                 saved, _ = p2i.generate(f'{d}/char.webp', f'{d}/pose.png', 'PROMPT', f'{d}/out', 'frame', consistency=f'{d}/pose.png',
-                                        n=2, background='transparent', meta={'view': 'ul'}, release_prompt='a knight walking')
+                                        n=2, background='transparent', meta={'view': 'ul'}, release_prompt='a knight walking', **kw)
             finally:
                 if old is None:
                     os.environ.pop('GPT_IMAGE_SCRIPT', None)
@@ -165,3 +166,58 @@ class SkillIntegration(unittest.TestCase):
         self.assertEqual(len(call['files']), 3)
         self.assertEqual(len(saved), 2)
         self.assertIn('direct', sides[0]['via'])
+        self.assertEqual(dict(call['fields'])['model'], 'gpt-image-test-default', "the skill's own default model")
+        self.assertNotIn('complexity', dict(call['fields']))
+
+    @unittest.skipIf(Image is None, 'Pillow missing')
+    def test_model_is_left_to_the_skill_unless_given(self):
+        call, _, _ = self._run(True)
+        self.assertIsNone(call['model'], 'no --model: the gpt-image skill picks its default (GPT Image 2.6)')
+        self.assertIsNone(call['complexity'])
+        call, _, sides = self._run(True, model='gpt-image-2.5-sunburst', complexity='low')
+        self.assertEqual((call['model'], call['complexity']), ('gpt-image-2.5-sunburst', 'low'))
+
+    @unittest.skipIf(Image is None, 'Pillow missing')
+    def test_direct_mode_passes_the_given_model_and_complexity(self):
+        call, _, _ = self._run(False, model='m-x', complexity='high')
+        self.assertEqual((dict(call['fields'])['model'], dict(call['fields'])['complexity']), ('m-x', 'high'))
+
+
+class SkillDiscovery(unittest.TestCase):
+    """The newer gpt-image skill is preferred; the older gpt-image-2-5 still works."""
+
+    def _find(self, names):
+        with tempfile.TemporaryDirectory() as home:
+            for n in names:
+                q = Path(home) / '.claude/skills' / n / 'scripts'
+                q.mkdir(parents=True)
+                (q / 'gpt_image.py').write_text('')
+            old = {k: os.environ.get(k) for k in ('HOME', 'GPT_IMAGE_SCRIPT')}
+            os.environ['HOME'] = home
+            os.environ.pop('GPT_IMAGE_SCRIPT', None)
+            try:
+                found = [c for c in p2i.skill_script_candidates() if c.startswith(home)]
+            finally:
+                for k, v in old.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+            return [p2i.skill_name(c) for c in found]
+
+    def test_prefers_gpt_image_over_gpt_image_2_5(self):
+        self.assertEqual(self._find(['gpt-image-2-5', 'gpt-image'])[0], 'gpt-image')
+
+    def test_falls_back_to_gpt_image_2_5(self):
+        self.assertEqual(self._find(['gpt-image-2-5']), ['gpt-image-2-5'])
+
+    def test_env_override_comes_first(self):
+        old = os.environ.get('GPT_IMAGE_SCRIPT')
+        os.environ['GPT_IMAGE_SCRIPT'] = '/somewhere/my-image/scripts/gpt_image.py'
+        try:
+            self.assertEqual(p2i.skill_script(), '/somewhere/my-image/scripts/gpt_image.py')
+        finally:
+            if old is None:
+                os.environ.pop('GPT_IMAGE_SCRIPT', None)
+            else:
+                os.environ['GPT_IMAGE_SCRIPT'] = old

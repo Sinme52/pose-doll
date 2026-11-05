@@ -1,6 +1,6 @@
 ---
 name: pose-doll
-description: 人型キャラクタに特定のポーズを取らせた画像を作るときに使う。3Dのポーズ人形をJSONで操作してポーズ参照画像を描き、キャラ画像と一緒に画像生成（GPT Image 2.5 の edit）へ渡して「このキャラでこのポーズ」の画像を作る。「〇〇のポーズで」「走っている／ジャンプしている／座っている絵」「歩行フレーム」「アニメーションのコマ」「ポーズ違い」「この写真のポーズで」など、既存キャラのポーズ指定が絡む画像生成では gpt-image-2-5 単体よりこちらを優先する。「ポーズ人形を開いて」「ポーズエディタ」のように、人が手でポーズを作るGUIを求められたときや、ほかの画像生成ツール（Stable Diffusion／ComfyUI の ControlNet、Gemini、Flux など）向けのポーズ素材（OpenPose・深度・マスク・プロンプト）を求められたときにも使う。
+description: 人型キャラクタに特定のポーズを取らせた画像を作るときに使う。3Dのポーズ人形をJSONで操作してポーズ参照画像を描き、キャラ画像と一緒に画像生成（gpt-image スキルの edit。既定は GPT Image 2.6）へ渡して「このキャラでこのポーズ」の画像を作る。「〇〇のポーズで」「走っている／ジャンプしている／座っている絵」「歩行フレーム」「アニメーションのコマ」「ポーズ違い」「この写真のポーズで」など、既存キャラのポーズ指定が絡む画像生成では gpt-image 単体よりこちらを優先する。「ポーズ人形を開いて」「ポーズエディタ」のように、人が手でポーズを作るGUIを求められたときや、ほかの画像生成ツール（Stable Diffusion／ComfyUI の ControlNet、Gemini、Flux など）向けのポーズ素材（OpenPose・深度・マスク・プロンプト）を求められたときにも使う。
 ---
 
 # pose-doll：ポーズ人形でキャラにポーズを取らせる
@@ -42,15 +42,17 @@ description: 人型キャラクタに特定のポーズを取らせた画像を�
    ```
    出力された PNG を Read で見て、意図どおりか確かめる。標準出力の `description` も読む。これは画像上の左右で書いた説明で、そのままプロンプトに入る。
    ずれていれば JSON を直して描き直す。人形が正しくなければ、生成結果も正しくならない。
-4. **生成する**（まず **gpt-image-2-5 スキルを Skill ツールで呼び出し**、API キーの扱い・品質・エラー時の案内などその決まりに従う）
+4. **生成する**（まず **gpt-image スキルを Skill ツールで呼び出し**、API キーの扱い・品質・エラー時の案内などその決まりに従う）
    ```bash
    python3 $SKILL/scripts/pose2image.py --character <キャラ画像> --pose my-pose.json \
      [--heads 7.5] [--view facing-lower-left] [--background transparent] [--fill auto] \
-     [--mirror legs] [--uncross] [--consistency <先に作ったコマ>] [--extra "She holds the rifle in both hands."]
+     [--mirror legs] [--uncross] [--consistency <先に作ったコマ>] [--extra "She holds the rifle in both hands."] [--complexity high] [--model <モデルID>]
    ```
    - `--dry-run` を付けると、API を呼ばずにプロンプトだけ確認できる。
    - 結果は `./pose-doll-out/` に出る。一緒に `*.check.jpg`（キャラ／人形／結果の3枚並び）が出力される。これを Read で見て、ポーズとキャラの再現度を確認する。
-   - 品質は既定で medium。「本番用」と言われたら、gpt-image-2-5 スキルの `release` で xhigh に上げる。
+   - 品質は既定で medium。「本番用」と言われたら、gpt-image スキルの `release` で xhigh に上げる。
+   - モデルは gpt-image スキルの既定（GPT Image 2.6）。`--model` で変えられる（例：前の結果に合わせて `gpt-image-2.5-sunburst`）。
+   - `--complexity low|medium|high`：描く前にどれだけ構図を考えるか（GPT Image 2.6 から）。省略時は API の既定（high）。
 5. **アニメーションのコマは `frames.py` でまとめて作る**（後述の「コマ一式」）。1枚ずつではなく、ゲームの再生順に並べて確認する。
 6. **ずれたときの直し方**
    - 左右が逆：人形の JSON が意図どおりか見直す。
@@ -99,19 +101,22 @@ node $SKILL/scripts/server.mjs --port 5178      # Bash の run_in_background で
   - 「the stride may be reversed」「probably show the same stride」が出たら、そのコマは前後が逆か、a と b が同じ形になっている可能性が高い。作り直すか、候補から選び直す。
 - **ユーザーの既存画像は上書きしない。** 出力は `./pose-doll-out/` に出る。採用するかはユーザーが決める。
 
-## gpt-image-2-5 スキルとの関係
+## gpt-image スキルとの関係
 
-- キャラ画像の生成（`pose2image.py` と、`--dry-run` なしの `frames.py`）だけが gpt-image-2-5 スキルを使う。人形の描画・エディタ・`--export` は単独で動く。
-- 生成は、gpt-image-2-5 スキルの公開コマンド `gpt_image.py edit` を呼ぶ。
+- キャラ画像の生成（`pose2image.py` と、`--dry-run` なしの `frames.py`）だけが gpt-image スキルを使う。人形の描画・エディタ・`--export` は単独で動く。
+- 生成は、gpt-image スキルの公開コマンド `gpt_image.py edit` を呼ぶ。
   - キャラ画像・人形画像・3枚目の画像を、1回のリクエストで送る。
-  - `edit` を持たない古いスキルのときは、自動で従来の方式（スクリプトの関数を直接使う）に切り替わる。
-  - 結果の JSON の `via` に、どちらで生成したかが残る。
-- スクリプトの場所は自動で探す（このスキルと同じフォルダに並んだ `gpt-image-2-5`、`~/.claude/skills/` の下など）。違う版を使うときは `GPT_IMAGE_SCRIPT=/path/to/gpt_image.py` を指定する。
-- 本番用（xhigh）への仕上げは、gpt-image-2-5 スキルの `release` で行う。
+  - モデルは指定しない限りスキルの既定（GPT Image 2.6）になる。`--model` / `--complexity` を付けたときだけ、そのまま渡す。
+  - 結果の JSON の `via` に、どのスキルで生成したかが残る（例：`gpt-image skill (edit command)`）。
+- スクリプトの場所は自動で探す。
+  - 探す順：`GPT_IMAGE_SCRIPT` → `gpt-image` → 旧版の `gpt-image-2-5`。それぞれ、このスキルと同じフォルダ、`~/.claude/skills/` の下などを探す。
+  - 旧版の `gpt-image-2-5` しか無い環境でも、そのまま動く。`edit` を持たないさらに古い版では、スクリプトの関数を直接使う方式に切り替わる。
+  - 違う版を使うときは `GPT_IMAGE_SCRIPT=/path/to/gpt_image.py` を指定する。
+- 本番用（xhigh）への仕上げは、gpt-image スキルの `release` で行う。
   - ポーズツールの結果には `release_prompt`（入力画像に触れない説明文）が記録されているので、`release --image <結果>` だけでよい。
-- gpt-image-2-5 スキルが見つからないときは、下の `--export` を案内する。
+- gpt-image スキルが見つからないときは、下の `--export` を案内する。
 
-## gpt-image-2-5 がない環境・ほかの画像生成ツールを使うとき：`--export`
+## gpt-image スキルがない環境・ほかの画像生成ツールを使うとき：`--export`
 
 素材を書き出して、ユーザーが使うツール（Stable Diffusion／ComfyUI、Gemini、Flux など）に渡す。API は呼ばない。
 

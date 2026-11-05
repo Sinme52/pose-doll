@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw a character in a mannequin pose with GPT Image 2.5 (images/edits with two or three input images).
+"""Draw a character in a mannequin pose with GPT Image (images/edits with two or three input images).
 
   1. renders the pose with render.mjs (PNG + an English description of the pose in picture terms)
   2. sends [character image, pose image, (optional) consistency image] + a prompt giving each image its role
@@ -13,7 +13,8 @@ Examples:
   python3 $SKILL/scripts/pose2image.py --character akane.webp --pose walk-ready-b --consistency pose-doll-out/akane--walk-ready-a.png
 
 For a whole set of animation frames (sheet, GIF in game order, comparison) use frames.py.
-Needs OPENAI_IMAGE_API_KEY (same as the gpt-image-2-5 skill) and Node + Playwright for the pose render.
+Needs the gpt-image skill (or the older gpt-image-2-5) with its OPENAI_IMAGE_API_KEY, and Node + Playwright
+for the pose render. The model is the skill's default unless --model is given.
 """
 import argparse
 import glob
@@ -62,24 +63,42 @@ BACKGROUND = {'transparent': 'fully transparent background, no ground, no cast s
               'opaque': 'plain light background', 'auto': 'simple background'}
 
 
+# image skills, newest first: gpt-image (GPT Image 2.6 and later), then the older gpt-image-2-5
+SKILL_NAMES = ('gpt-image', 'gpt-image-2-5')
+FALLBACK_MODEL = 'gpt-image-2.5-sunburst'  # only for old skills without 'edit' that also lack DEFAULT_MODEL
+
+
+def skill_script_candidates():
+    """Every gpt_image.py found, in the order they are tried (GPT_IMAGE_SCRIPT first)."""
+    paths = [os.environ['GPT_IMAGE_SCRIPT']] if os.environ.get('GPT_IMAGE_SCRIPT') else []
+    for name in SKILL_NAMES:
+        rel = f'{name}/scripts/gpt_image.py'
+        paths += glob.glob(str(Path(__file__).resolve().parents[2] / rel))  # installed next to this skill
+        paths += glob.glob(str(Path.home() / '.claude/skills' / rel))
+        paths += sorted(glob.glob(f'/root/.claude/skills/synced/*/{rel}'))
+        paths += sorted(glob.glob(str(Path.home() / '.claude/skills/**' / rel), recursive=True))
+    return list(dict.fromkeys(paths))
+
+
 def skill_script():
-    """Path of the gpt-image-2-5 skill's scripts/gpt_image.py (GPT_IMAGE_SCRIPT overrides the search)."""
-    paths = ([os.environ['GPT_IMAGE_SCRIPT']] if os.environ.get('GPT_IMAGE_SCRIPT') else []) \
-        + glob.glob(str(Path(__file__).resolve().parents[2] / 'gpt-image-2-5/scripts/gpt_image.py')) \
-        + glob.glob(str(Path.home() / '.claude/skills/gpt-image-2-5/scripts/gpt_image.py')) \
-        + glob.glob('/root/.claude/skills/synced/*/gpt-image-2-5/scripts/gpt_image.py') \
-        + glob.glob(str(Path.home() / '.claude/skills/**/gpt-image-2-5/scripts/gpt_image.py'), recursive=True)
+    """Path of the image skill's scripts/gpt_image.py (GPT_IMAGE_SCRIPT overrides the search)."""
+    paths = skill_script_candidates()
     if not paths:
-        sys.exit('gpt-image-2-5 skill script not found; set GPT_IMAGE_SCRIPT=/path/to/gpt_image.py '
+        sys.exit('gpt-image skill script not found; set GPT_IMAGE_SCRIPT=/path/to/gpt_image.py '
                  '(or use --export to make pose packs for other image generators)')
     return paths[0]
+
+
+def skill_name(script):
+    """Folder name of the skill a gpt_image.py belongs to (e.g. gpt-image)."""
+    return Path(script).resolve().parents[1].name
 
 
 _EDIT_SUPPORT = {}
 
 
 def skill_has_edit(script):
-    """True if the skill offers the public 'edit' command (gpt-image-2.5 with reference images)."""
+    """True if the skill offers the public 'edit' command (generation from reference images)."""
     if script not in _EDIT_SUPPORT:
         r = subprocess.run([sys.executable, script, 'edit', '--help'], capture_output=True, text=True)
         _EDIT_SUPPORT[script] = r.returncode == 0 and '--image' in r.stdout
@@ -237,9 +256,10 @@ def auto_fill(character, default=0.82, margin=0.97):
     return round(min(0.97, max(0.3, h * margin)), 3)
 
 
-def generate(character, pose_png, prompt, out_dir, stem, *, consistency=None, model='gpt-image-2.5-sunburst',
-             quality='medium', size='1024x1024', background='opaque', n=1, meta=None, release_prompt=None):
-    """Generate with the gpt-image-2-5 skill; returns (saved image paths, seconds).
+def generate(character, pose_png, prompt, out_dir, stem, *, consistency=None, model=None,
+             quality='medium', complexity=None, size='1024x1024', background='opaque', n=1, meta=None, release_prompt=None):
+    """Generate with the gpt-image skill (or the older gpt-image-2-5); returns (saved image paths, seconds).
+    model None = the skill's own default model; complexity None = the API default.
     Uses the skill's public 'edit' command when it has one, else its HTTP helpers directly (older skills).
     POSE_DOLL_GPT_MODE=cli|direct forces one way. Every sidecar JSON also gets the layout of the result."""
     script = skill_script()
@@ -248,23 +268,23 @@ def generate(character, pose_png, prompt, out_dir, stem, *, consistency=None, mo
              **(meta or {})}
     if mode == 'cli':
         saved, elapsed = _generate_cli(script, [character, pose_png] + ([consistency] if consistency else []), prompt,
-                                       out_dir, stem, model=model, quality=quality, size=size, background=background, n=n,
-                                       extra=extra, release_prompt=release_prompt)
+                                       out_dir, stem, model=model, quality=quality, complexity=complexity, size=size,
+                                       background=background, n=n, extra=extra, release_prompt=release_prompt)
     else:
         saved, elapsed = _generate_direct(character, pose_png, consistency, prompt, out_dir, stem, model=model,
-                                          quality=quality, size=size, background=background, n=n, extra=extra)
+                                          quality=quality, complexity=complexity, size=size, background=background, n=n, extra=extra)
     for s in saved:
         side = Path(s).with_suffix('.json')
         if side.exists():
             d = json.loads(side.read_text())
             d['layout'] = layout(s)
             d['pose_layout'] = layout(pose_png)
-            d['via'] = f'gpt-image-2-5 skill ({"edit command" if mode == "cli" else "direct HTTP helpers"})'
+            d['via'] = f'{skill_name(script)} skill ({"edit command" if mode == "cli" else "direct HTTP helpers"})'
             side.write_text(json.dumps(d, ensure_ascii=False, indent=2))
     return saved, elapsed
 
 
-def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, size, background, n, extra, release_prompt):
+def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, complexity, size, background, n, extra, release_prompt):
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         sent = []
@@ -278,8 +298,12 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, size
         cmd = [sys.executable, script, 'edit']
         for p in sent:
             cmd += ['--image', p]
-        cmd += ['--prompt', prompt, '--quality', quality, '--model', model, '--size', size, '--format', 'png',
+        cmd += ['--prompt', prompt, '--quality', quality, '--size', size, '--format', 'png',
                 '--n', str(n), '--name', stem, '--out-dir', str(out_dir), '--meta-json', str(metaf)]
+        if model:  # otherwise the skill's own default (GPT Image 2.6 in the gpt-image skill)
+            cmd += ['--model', model]
+        if complexity:
+            cmd += ['--complexity', complexity]
         if background != 'auto':
             cmd += ['--background', background]
         if release_prompt:
@@ -290,7 +314,7 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, size
             msg = json.loads(r.stderr.strip().splitlines()[-1])['error']
         except (ValueError, KeyError, IndexError):
             msg = r.stderr.strip()[-800:]
-        raise RuntimeError(f'gpt-image-2-5 edit failed: {msg}')
+        raise RuntimeError(f'{skill_name(script)} edit failed: {msg}')
     out = json.loads(r.stdout)
     saved = [str(p) for p in out['files']]
     for s in saved:  # input_images in the sidecar point at temporary copies: record the real files
@@ -302,9 +326,10 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, size
     return saved, out.get('elapsed_sec')
 
 
-def _generate_direct(character, pose_png, consistency, prompt, out_dir, stem, *, model, quality, size, background, n, extra):
+def _generate_direct(character, pose_png, consistency, prompt, out_dir, stem, *, model, quality, complexity, size, background, n, extra):
     gi = load_skill()
     key = gi.load_api_key()
+    model = model or getattr(gi, 'DEFAULT_MODEL', FALLBACK_MODEL)
     images = [('character.png', character), ('pose.png', pose_png)] + ([('consistency.png', consistency)] if consistency else [])
     files = []
     for name, p in images:
@@ -314,6 +339,8 @@ def _generate_direct(character, pose_png, consistency, prompt, out_dir, stem, *,
               ('output_format', 'png'), ('n', str(n))]
     if background != 'auto':
         fields.append(('background', background))
+    if complexity:
+        fields.append(('complexity', complexity))
     body, ctype = gi._multipart(fields, files)
     payload, rid, elapsed = gi._post(f'{gi.base_url()}/images/edits', body, ctype, key)
     full = {'prompt': prompt, 'model': model, 'quality': quality, 'size': size, 'background': background,
@@ -367,7 +394,9 @@ def main():
     ap.add_argument('--size', default='1024x1024')
     ap.add_argument('--background', default='opaque', choices=('transparent', 'opaque', 'auto'))
     ap.add_argument('--quality', default='medium')
-    ap.add_argument('--model', default='gpt-image-2.5-sunburst')
+    ap.add_argument('--complexity', choices=('low', 'medium', 'high'),
+                    help='how much the model plans before drawing (GPT Image 2.6+; default: the API default)')
+    ap.add_argument('--model', help="image model ID (default: the gpt-image skill's default model)")
     ap.add_argument('--n', type=int, default=1)
     ap.add_argument('--out-dir', default=str(OUT_ROOT), help='default: ./pose-doll-out (or $POSE_DOLL_OUT)')
     ap.add_argument('--name', help='output file stem')
@@ -393,7 +422,7 @@ def main():
         print(json.dumps({'pose_png': str(pose_png), 'prompt': prompt}, ensure_ascii=False, indent=2))
         return
     saved, elapsed = generate(args.character, pose_png, prompt, out_dir, stem, consistency=args.consistency, model=args.model,
-                              quality=args.quality, size=args.size, background=args.background, n=args.n,
+                              quality=args.quality, complexity=args.complexity, size=args.size, background=args.background, n=args.n,
                               meta={'rig': args.rig, 'pose': r['pose']},
                               release_prompt=release_prompt_for(r['pose'], args.background))
     refs = [args.character, pose_png] + ([args.consistency] if args.consistency else [])
