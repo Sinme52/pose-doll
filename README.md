@@ -1,92 +1,94 @@
 # pose-doll
 
-人型キャラクタに狙ったポーズを取らせるための Claude スキルです。
+English | [日本語](README.ja.md)
 
-3D のポーズ人形を JSON（または GUI のエディタ）で動かして、ポーズ参照画像を描きます。
-その画像をキャラ画像と一緒に画像生成（gpt-image スキルの edit）へ渡し、「このキャラでこのポーズ」の画像を作ります。
-文章だけでポーズを指定すると左右や手足の位置を取り違えやすいので、人形の画像で指定します。
+A Claude skill for putting a humanoid character into the exact pose you want.
 
-![キャラ画像・人形・生成結果](docs/example-akane.jpg)
+You pose a 3D doll with JSON (or in the GUI editor) and render it as a pose reference image.
+That image goes to image generation together with your character image (the `edit` command of the [gpt-image skill](https://github.com/Sinme52/gpt-image)), and you get "this character in this pose".
+Describing a pose in words alone often mixes up left and right or where the hands and feet go, so the pose is given as a doll image instead.
 
-## できること
+![Character image, doll, and result](docs/example-akane.jpg)
 
-- **ポーズ人形の描画**：JSON で関節角度を指定し、ヘッドレス Chromium で PNG に描きます。
-  - 画像上の左右で書いたポーズ説明文（英語）も出力します。そのままプロンプトになります。
-- **キャラ画像の生成**：gpt-image スキルの `edit` を呼び、キャラ画像と人形画像から生成します。
-  - 旧版の gpt-image-2-5 スキルしか無い環境でも動きます。
-  - 生成結果は、キャラ／人形／結果を並べた確認画像と一緒に出力されます。
-- **アニメーションのコマ一式**（`frames.py`）：
-  - ポーズ × 向きを一括で作ります。
-  - 縮尺を固定し、再生順の GIF と比較シートで確認できます。
-  - 候補から採用する案を選べます。
-- **ほかの画像生成ツール向けの書き出し**（`--export`）：
-  - OpenPose 画像と関節 JSON（ControlNet 用）、深度画像、マスク、プロンプト文を書き出します。
-  - gpt-image スキルが無くても使えます。
-- **GUI エディタ**：部位をクリックしてスライダーで動かします。
-  - 「プロジェクトに保存」で名前を付けると、Claude にその名前でポーズを指示できます。
-- **持ち物**：銃（10種）、剣（片手・両手・刀・短剣・斧）、盾（5種）、杖・槍を持たせられます。
-- **写真からポーズを作る**（任意、`photo2pose.py`、MediaPipe）
-- **キャラ本人の3Dモデルを使う**（任意、Meshy でリギングした GLB）
+## Features
 
-## インストール
+- **Render the pose doll**: set joint angles in JSON and render a PNG with headless Chromium.
+  - It also outputs a pose description (in English) written in terms of the picture's left and right, ready to use as a prompt.
+- **Generate the character image**: calls the `edit` command of the gpt-image skill with the character image and the doll image.
+  - It also works where only the older gpt-image-2-5 skill is installed.
+  - Each result comes with a check image that shows the character, the doll, and the result side by side.
+- **Animation frame sets** (`frames.py`):
+  - Makes every pose × direction combination in one go.
+  - Keeps the scale fixed, and lets you check the frames as a GIF in playback order and as a comparison sheet.
+  - Lets you choose which candidate to keep.
+- **Export for other image generators** (`--export`):
+  - Writes an OpenPose image and joint JSON (for ControlNet), a depth image, a mask, and the prompt text.
+  - Works without the gpt-image skill.
+- **GUI editor**: click a body part and move it with the sliders.
+  - Give a pose a name with "Save to project", and you can ask Claude for that pose by name.
+- **Props**: guns (10 kinds), swords (one-handed, two-handed, katana, dagger, axe), shields (5 kinds), staff and spear.
+- **Make a pose from a photo** (optional, `photo2pose.py`, MediaPipe)
+- **Use a 3D model of the character itself** (optional, a GLB rigged with Meshy)
 
-スキル本体は `pose-doll/` フォルダです（`SKILL.md` と `scripts/`）。
+## Install
 
-- **Claude Code（個人用）**：
+The skill itself is the `pose-doll/` folder (`SKILL.md` and `scripts/`).
+
+- **Claude Code (personal)**:
   ```bash
   git clone https://github.com/Sinme52/pose-doll.git
   cp -r pose-doll/pose-doll ~/.claude/skills/
   ```
-- **Claude Code（プロジェクト用）**：`pose-doll/` をプロジェクトの `.claude/skills/` に置きます。
-- **claude.ai**：`pose-doll/` を zip にして、設定の「スキル」からアップロードします。
-  - ただし描画にはブラウザ（Chromium）が必要です。claude.ai のチャット環境では動かないことがあります。
+- **Claude Code (project)**: put `pose-doll/` in the project's `.claude/skills/`.
+- **claude.ai**: zip `pose-doll/` and upload it under Settings > Skills.
+  - Rendering needs a browser (Chromium), so it may not work in the claude.ai chat environment.
 
-### 必要なもの
+### Requirements
 
-- Node.js 20 以上（22 で動作確認）。three.js 0.170 の必要な部分は `scripts/node_modules/three` に同梱しています。
-- Playwright と Chromium（描画用）。初回だけ、スキルのフォルダの外に入れます。
+- Node.js 20 or later (tested on 22). The parts of three.js 0.170 it needs are bundled in `scripts/node_modules/three`.
+- Playwright and Chromium (for rendering). Install them once, outside the skill folder:
   ```bash
   npm install --prefix ~/.cache/pose-doll playwright && npx --prefix ~/.cache/pose-doll playwright install chromium
   ```
-  グローバルや作業ディレクトリに Playwright があれば、それを使います。
-  **`scripts/` の中で `npm install` を実行しないでください。** 同梱の three.js が消えます。
-- Python 3 と Pillow（`pose2image.py` / `frames.py`）
-- 生成する場合：gpt-image スキル（`edit` コマンドがあるもの。旧版の gpt-image-2-5 も可）と OpenAI の API キー
-- 任意：`pip install mediapipe`（写真から作る場合）、meshy-cli（3Dモデルを作る場合）
+  A global Playwright, or one in the working directory, is used if present.
+  **Do not run `npm install` inside `scripts/`.** It removes the bundled three.js.
+- Python 3 and Pillow (`pose2image.py` / `frames.py`)
+- To generate images: the gpt-image skill (a version with the `edit` command; the older gpt-image-2-5 also works) and an OpenAI API key
+- Optional: `pip install mediapipe` (to start from a photo), meshy-cli (to make a 3D model)
 
-## 使い方
+## Usage
 
-Claude に頼むのが基本です。
+Usually you just ask Claude:
 
-- 「akane をライフルを構えたポーズで」
-- 「この写真のポーズで描いて」
-- 「歩行のコマを dl と ul で作って」
-- 「ポーズ人形を開いて」（エディタが起動します）
-- 「ComfyUI で使うポーズ素材を書き出して」
+- "Draw akane aiming a rifle"
+- "Draw her in the pose from this photo"
+- "Make walking frames facing dl and ul"
+- "Open the pose doll" (starts the editor)
+- "Export pose assets for ComfyUI"
 
-手で動かす場合は、プロジェクトのフォルダで次のように実行します（`$SKILL` はスキルのフォルダ）。
+To run it by hand, run these in your project folder (`$SKILL` is the skill folder):
 
 ```bash
-node $SKILL/scripts/server.mjs --port 5178                  # エディタ → http://localhost:5178
-node $SKILL/scripts/render.mjs run --view facing-lower-left # 人形を描く → ./pose-doll-out/run.png
+node $SKILL/scripts/server.mjs --port 5178                  # editor → http://localhost:5178
+node $SKILL/scripts/render.mjs run --view facing-lower-left # render the doll → ./pose-doll-out/run.png
 python3 $SKILL/scripts/pose2image.py --character hero.png --pose run --dry-run
 ```
 
-- 出力は作業ディレクトリの `pose-doll-out/` に出ます。
-- エディタで保存したポーズは `pose-doll-poses/` に保存されます。
-- スキルのフォルダには書き込みません。
+- Output goes to `pose-doll-out/` in the working directory.
+- Poses saved in the editor go to `pose-doll-poses/`.
+- Nothing is written to the skill folder.
 
-詳しい手順と注意点は [pose-doll/SKILL.md](pose-doll/SKILL.md) にあります。
+Detailed steps and caveats are in [pose-doll/SKILL.md](pose-doll/SKILL.md) (in Japanese).
 
-## テスト
+## Tests
 
 ```bash
-cd pose-doll/scripts && npm test   # Node のテストと Python のテスト
+cd pose-doll/scripts && npm test   # Node and Python tests
 ```
 
-## ライセンス
+## License
 
-[MIT License](LICENSE)（Copyright (c) 2026 Sinme52）
+[MIT License](LICENSE) (Copyright (c) 2026 Sinme52)
 
-- スキルのフォルダにも同じ `pose-doll/LICENSE` を入れているので、zip で配布してもライセンス表記が残ります。
-- 同梱の three.js は、three.js authors による MIT ライセンスです（`pose-doll/scripts/node_modules/three/LICENSE`）。
+- The skill folder has the same `pose-doll/LICENSE`, so the license stays with the files when you distribute them as a zip.
+- The bundled three.js is under the MIT License by the three.js authors (`pose-doll/scripts/node_modules/three/LICENSE`).
