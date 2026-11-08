@@ -30,6 +30,19 @@ HERE = Path(__file__).resolve().parent
 # outputs go to the working directory, never into the skill folder
 OUT_ROOT = Path(os.environ.get('POSE_DOLL_OUT') or Path.cwd() / 'pose-doll-out')
 
+# print JSON as UTF-8 on Windows too (callers such as Claude read it as UTF-8, not cp932)
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, 'reconfigure'):
+        _stream.reconfigure(encoding='utf-8')
+
+
+def utf8_env():
+    """Environment for child Python processes: make them write UTF-8 to pipes, as node does.
+    On Windows, text pipes and text files otherwise use the ANSI code page (cp932 on Japanese
+    Windows), which breaks on non-ASCII paths such as a folder under ドキュメント."""
+    return {**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+
+
 PROMPT = """You are given {n_images} images.
 IMAGE 1 is the CHARACTER reference. Copy this character exactly: identical face, hairstyle and hair color, outfit, armor, colors, body proportions and build, accessories, equipment and any weapon, and the same art style and rendering quality.
 IMAGE 2 is only a POSE reference: a featureless jointed artist's mannequin. Take ONLY the body pose, the limb positions and the camera angle and framing from it. Copy nothing else from it: not its grey/blue/red colors, not its ball joints, not its smooth plastic surface, not its face markings, not its stick-like body shape or proportions.{color_note}{prop_note}{consistency_note}
@@ -100,7 +113,8 @@ _EDIT_SUPPORT = {}
 def skill_has_edit(script):
     """True if the skill offers the public 'edit' command (generation from reference images)."""
     if script not in _EDIT_SUPPORT:
-        r = subprocess.run([sys.executable, script, 'edit', '--help'], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, script, 'edit', '--help'], capture_output=True, text=True,
+                           encoding='utf-8', env=utf8_env())
         _EDIT_SUPPORT[script] = r.returncode == 0 and '--image' in r.stdout
     return _EDIT_SUPPORT[script]
 
@@ -157,13 +171,13 @@ def render_pose(pose, out_png, *, view=None, heads=None, mirror=None, rig=None, 
         cmd += ['--azimuth', str(azimuth)]
     if elevation is not None:
         cmd += ['--elevation', str(elevation)]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
     if res.returncode != 0:
         raise RuntimeError(f'pose render failed:\n{res.stderr}')
     if res.stderr.strip():
         print(res.stderr.strip(), file=sys.stderr)  # includes 'warning (...): ...' lines
     out = json.loads(res.stdout.strip().splitlines()[-1])
-    out['pose'] = json.load(open(out['sidecar']))['pose']
+    out['pose'] = json.load(open(out['sidecar'], encoding='utf-8'))['pose']
     return out
 
 
@@ -276,11 +290,11 @@ def generate(character, pose_png, prompt, out_dir, stem, *, consistency=None, mo
     for s in saved:
         side = Path(s).with_suffix('.json')
         if side.exists():
-            d = json.loads(side.read_text())
+            d = json.loads(side.read_text(encoding='utf-8'))
             d['layout'] = layout(s)
             d['pose_layout'] = layout(pose_png)
             d['via'] = f'{skill_name(script)} skill ({"edit command" if mode == "cli" else "direct HTTP helpers"})'
-            side.write_text(json.dumps(d, ensure_ascii=False, indent=2))
+            side.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding='utf-8')
     return saved, elapsed
 
 
@@ -294,7 +308,7 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, comp
             q.write_bytes(data)
             sent.append(str(q))
         metaf = Path(tmp) / 'meta.json'
-        metaf.write_text(json.dumps({**extra, 'input_files': [str(p) for p in images]}, ensure_ascii=False))
+        metaf.write_text(json.dumps({**extra, 'input_files': [str(p) for p in images]}, ensure_ascii=False), encoding='utf-8')
         cmd = [sys.executable, script, 'edit']
         for p in sent:
             cmd += ['--image', p]
@@ -308,7 +322,7 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, comp
             cmd += ['--background', background]
         if release_prompt:
             cmd += ['--release-prompt', release_prompt]
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', env=utf8_env())
     if r.returncode != 0:
         try:
             msg = json.loads(r.stderr.strip().splitlines()[-1])['error']
@@ -320,9 +334,9 @@ def _generate_cli(script, images, prompt, out_dir, stem, *, model, quality, comp
     for s in saved:  # input_images in the sidecar point at temporary copies: record the real files
         side = Path(s).with_suffix('.json')
         if side.exists():
-            d = json.loads(side.read_text())
+            d = json.loads(side.read_text(encoding='utf-8'))
             d['input_images'] = d.pop('input_files', d.get('input_images'))
-            side.write_text(json.dumps(d, ensure_ascii=False, indent=2))
+            side.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding='utf-8')
     return saved, out.get('elapsed_sec')
 
 
