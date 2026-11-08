@@ -40,7 +40,8 @@ The skill itself is the `pose-doll/` folder (`SKILL.md` and `scripts/`).
   cp -r pose-doll/pose-doll ~/.claude/skills/
   ```
 - **Claude Code (project)**: put `pose-doll/` in the project's `.claude/skills/`.
-- **claude.ai**: zip `pose-doll/` and upload it under Settings > Skills.
+- **claude.ai**: download [`dist/pose-doll.zip`](https://github.com/Sinme52/pose-doll/raw/main/dist/pose-doll.zip) and upload it under Settings > Skills.
+  - The same zip also works for Claude Code: unzip it into `~/.claude/skills/` (it contains the `pose-doll/` folder).
   - Rendering needs a browser (Chromium), so it may not work in the claude.ai chat environment.
 
 ### Requirements
@@ -84,6 +85,13 @@ Detailed steps and caveats are in [pose-doll/SKILL.md](pose-doll/SKILL.md) (in J
 
 ```bash
 cd pose-doll/scripts && npm test   # Node and Python tests
+```
+
+After changing anything under `pose-doll/`, rebuild the skill zip and commit it with the change:
+
+```bash
+python3 build-zip.py          # writes dist/pose-doll.zip (no tests or caches; same bytes for the same files)
+python3 build-zip.py --check  # fails if dist/pose-doll.zip is out of date
 ```
 
 ## License
