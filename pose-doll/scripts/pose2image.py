@@ -233,6 +233,12 @@ def _mask(path):
     return ImageChops.difference(im.convert('RGB'), bg).convert('L').point(lambda d: 255 if d > 28 else 0)
 
 
+def pixels(im):
+    """All pixel values of a Pillow image as a list (get_flattened_data on Pillow 12.1+, getdata before)."""
+    flat = getattr(im, 'get_flattened_data', None)
+    return list(flat() if flat else im.getdata())
+
+
 def lowest_foot_side(path, band=0.2):
     """Which side of the feet area the lowest foot (the one nearest the viewer) is on:
     (x_lowest - centre of the feet band) / width of the band, -0.5..0.5. Negative = picture-left.
@@ -252,7 +258,7 @@ def lowest_foot_side(path, band=0.2):
     if not fb:
         return None
     lo = feet.crop((fb[0], max(0, feet.height - max(2, int(0.03 * h))), fb[2], feet.height))
-    cols = list(lo.resize((lo.width, 1)).getdata())
+    cols = pixels(lo.resize((lo.width, 1)))
     tot = sum(cols)
     if not tot:
         return None

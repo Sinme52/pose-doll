@@ -64,8 +64,11 @@ class FeetChecks(unittest.TestCase):
                 other = 100 - low_x
                 dr.rectangle((other - 5, 150, other + 5, 175), fill=(0, 0, 200, 255))  # the other, higher foot
                 im.save(f'{d}/{name}.png')
-            self.assertLess(p2i.lowest_foot_side(f'{d}/left.png'), -0.15)
-            self.assertGreater(p2i.lowest_foot_side(f'{d}/right.png'), 0.15)
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter('error', DeprecationWarning)  # no Pillow APIs that are going away
+                self.assertLess(p2i.lowest_foot_side(f'{d}/left.png'), -0.15)
+                self.assertGreater(p2i.lowest_foot_side(f'{d}/right.png'), 0.15)
 
     def test_check_feet_flags_same_stride(self):
         values = {'a.pose': 0.37, 'b.pose': -0.14, 'a.png': 0.3, 'b.png': 0.28, 's.pose': 0.0, 's.png': 0.0}
