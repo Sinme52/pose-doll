@@ -29,6 +29,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+# print JSON as UTF-8 on Windows too (callers such as Claude read it as UTF-8, not cp932)
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, 'reconfigure'):
+        _stream.reconfigure(encoding='utf-8')
+
 HERE = Path(__file__).resolve().parent
 OUT_ROOT = Path(os.environ.get('POSE_DOLL_OUT') or Path.cwd() / 'pose-doll-out')
 CLI_VERSION = '0.4.0'
@@ -41,7 +46,8 @@ NO_WEAPON = ("Front view, facing straight at the viewer. Both hands are empty an
 def runner():
     exe = shutil.which('meshy')
     if exe:
-        v = subprocess.run([exe, '--version'], capture_output=True, text=True).stdout.strip()
+        v = subprocess.run([exe, '--version'], capture_output=True, text=True, encoding='utf-8',
+                           errors='replace').stdout.strip()
         if v.endswith(CLI_VERSION):
             return [exe]
     return ['npm', 'exec', '--yes', f'--package=meshy-cli@{CLI_VERSION}', '--', 'meshy']
@@ -49,7 +55,7 @@ def runner():
 
 def meshy(args, *, v1=True, check=True):
     cmd = RUN + args + (['--output-schema', 'v1'] if v1 else []) + ['--format', 'json', '--no-update-check']
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
     try:
         data = json.loads(res.stdout)
     except json.JSONDecodeError:
@@ -69,10 +75,10 @@ class Job:
         self.dir = OUT_ROOT / 'meshy' / name
         self.dir.mkdir(parents=True, exist_ok=True)
         self.state_path = self.dir / 'state.json'
-        self.state = json.loads(self.state_path.read_text()) if self.state_path.exists() else {'tasks': {}, 'credits': {}}
+        self.state = json.loads(self.state_path.read_text(encoding='utf-8')) if self.state_path.exists() else {'tasks': {}, 'credits': {}}
 
     def save(self):
-        self.state_path.write_text(json.dumps(self.state, indent=2))
+        self.state_path.write_text(json.dumps(self.state, indent=2), encoding='utf-8')
 
     @property
     def project(self):
@@ -164,7 +170,8 @@ def main():
         log('making an A-pose front view with GPT Image')
         res = subprocess.run([sys.executable, str(HERE / 'pose2image.py'), '--character', args.character, '--pose', 'a-pose',
                               '--heads', str(args.heads), '--name', f'{args.name}-apose', '--out-dir', str(job.dir),
-                              '--background', 'opaque', '--extra', NO_WEAPON], capture_output=True, text=True)
+                              '--background', 'opaque', '--extra', NO_WEAPON], capture_output=True, text=True,
+                             encoding='utf-8', env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
         if res.returncode != 0:
             sys.exit(f'A-pose image failed:\n{res.stderr[-1500:]}')
         image = json.loads(res.stdout)['files'][0]
@@ -192,7 +199,7 @@ def main():
         'source_image': str(image or args.character),
         'pipeline': [{'stage': r, 'task_id': job.state['tasks'][r], 'credits': job.state['credits'].get(r)} for r in ('image-to-3d', 'remesh', 'rigging')],
         'notes': 'Bind pose is the A-pose. Use with: render.mjs --model / pose2image.py --rig',
-    }, ensure_ascii=False, indent=2))
+    }, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps({'ok': True, 'files': files, 'sidecar': str(sidecar), 'preview': preview,
                       'credits': job.state['credits']}, ensure_ascii=False, indent=2))
 

@@ -21,6 +21,11 @@ import sys
 import urllib.request
 from pathlib import Path
 
+# print JSON as UTF-8 on Windows too (callers such as Claude read it as UTF-8, not cp932)
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, 'reconfigure'):
+        _stream.reconfigure(encoding='utf-8')
+
 HERE = Path(__file__).resolve().parent
 MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task'
 KEY = {'shoulders': (11, 12), 'hips': (23, 24), 'knees': (25, 26), 'ankles': (27, 28)}
@@ -101,18 +106,18 @@ def main():
             continue
         lm['source'] = str(img)
         lpath = out / f'{stem}.landmarks.json'
-        lpath.write_text(json.dumps(lm))
+        lpath.write_text(json.dumps(lm), encoding='utf-8')
         r = subprocess.run(['node', str(HERE / 'fit.mjs'), str(lpath), '--heads', str(args.heads), '--out', str(out / f'{stem}.pose.json')],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding='utf-8')
         if r.returncode:
             results.append({'image': img, 'skipped': f'fit failed: {r.stderr[-400:]}'})
             continue
         fit = json.loads(r.stdout)
-        pose = json.loads((out / f'{stem}.pose.json').read_text())
+        pose = json.loads((out / f'{stem}.pose.json').read_text(encoding='utf-8'))
         cam = pose['fit']['photoCamera']
         png = out / f'{stem}.fit.png'
         rr = subprocess.run(['node', str(HERE / 'render.mjs'), str(out / f'{stem}.pose.json'), '--azimuth', str(cam['azimuth']),
-                             '--elevation', str(cam['elevation']), '--out', str(png), '--size', '512x512'], capture_output=True, text=True)
+                             '--elevation', str(cam['elevation']), '--out', str(png), '--size', '512x512'], capture_output=True, text=True, encoding='utf-8')
         if rr.returncode == 0:
             sheet(im, lm, png, out / f'{stem}.compare.jpg')
         results.append({'image': img, 'pose': str(out / f'{stem}.pose.json'), 'compare': str(out / f'{stem}.compare.jpg'),

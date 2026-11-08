@@ -214,7 +214,7 @@ def main():
     sizes = [int(s) for s in args.gif_sizes.split(',') if s.strip()]
     fill_t = lambda t, v: t.replace('{view}', v) if t else t  # noqa: E731
     picks_path = root / 'picks.json'
-    picks = json.loads(picks_path.read_text()) if picks_path.exists() else {}
+    picks = json.loads(picks_path.read_text(encoding='utf-8')) if picks_path.exists() else {}
     N = max(1, args.candidates)
 
     # 1. mannequins (always first, cheap)
@@ -325,7 +325,7 @@ def main():
             for it in plan[v]:
                 if it.get('candidates'):
                     pick(v, it)
-    picks_path.write_text(json.dumps(picks, indent=2))
+    picks_path.write_text(json.dumps(picks, indent=2), encoding='utf-8')
 
     # 3. checks, sheets and GIFs
     labels = [f['label'] for f in frames]
@@ -360,7 +360,7 @@ def main():
                'warnings': render_warnings, 'checks': checks, 'picks': picks,
                'items': {v: [{k: it.get(k) for k in ('label', 'kind', 'pose_png', 'image', 'candidates', 'view', 'uncrossed', 'warnings', 'feet_check')} |
                              {'layout': p2i.layout(it['image']) if it.get('image') else None} for it in plan[v]] for v in views}}
-    (root / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2))
+    (root / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
     if args.export:
         lines = [f'# Pose pack: {args.name}', '',
                  'Pose references for image generators other than GPT Image. Per frame:',
@@ -379,7 +379,7 @@ def main():
                 for w in it.get('warnings') or []:
                     lines.append(f'  - note: {w}')
             lines.append('')
-        (root / 'EXPORT.md').write_text('\n'.join(lines))
+        (root / 'EXPORT.md').write_text('\n'.join(lines), encoding='utf-8')
     print(json.dumps({'ok': not errors, 'dir': str(root), 'sheet': sheet_path, 'outputs': outputs, 'errors': errors,
                       'warnings': render_warnings, 'checks': checks, 'picks': str(picks_path)}, ensure_ascii=False, indent=2))
     if errors:
