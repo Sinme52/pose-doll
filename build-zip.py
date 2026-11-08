@@ -7,6 +7,8 @@
 The zip holds the pose-doll/ folder (SKILL.md, LICENSE, scripts/) without tests and caches.
 It is reproducible: entries are sorted and carry a fixed date, so rebuilding unchanged
 files gives the same bytes and no git diff. Rebuild and commit it whenever pose-doll/ changes.
+--check compares the entries (names and uncompressed contents), not the compressed bytes,
+which can differ between zlib builds (as on CI runners).
 """
 import argparse
 import io
@@ -50,13 +52,19 @@ def build_bytes():
     return buf.getvalue()
 
 
+def entries(data):
+    """[(name, uncompressed bytes)] of a zip, for comparing two builds independently of the compressor."""
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        return [(i.filename, z.read(i)) for i in z.infolist()]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('--check', action='store_true', help='only check that dist/pose-doll.zip is up to date')
     args = ap.parse_args()
     data = build_bytes()
     if args.check:
-        if OUT.exists() and OUT.read_bytes() == data:
+        if OUT.exists() and entries(OUT.read_bytes()) == entries(data):
             print(f'{OUT.relative_to(ROOT)} is up to date')
             return
         print(f'{OUT.relative_to(ROOT)} is out of date: run python3 build-zip.py and commit it', file=sys.stderr)

@@ -1,0 +1,17 @@
+name: Skill zip check
+
+# dist/pose-doll.zip must match pose-doll/ (rebuild with: python3 build-zip.py)
+on:
+  push:
+  pull_request:
+
+jobs:
+  zip-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check that dist/pose-doll.zip is up to date
+        run: python3 build-zip.py --check

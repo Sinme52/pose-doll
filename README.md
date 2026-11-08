@@ -94,6 +94,8 @@ python3 build-zip.py          # writes dist/pose-doll.zip (no tests or caches; s
 python3 build-zip.py --check  # fails if dist/pose-doll.zip is out of date
 ```
 
+GitHub Actions runs the `--check` on every push and pull request (`.github/workflows/zip-check.yml`).
+
 ## License
 
 [MIT License](LICENSE) (Copyright (c) 2026 Sinme52)

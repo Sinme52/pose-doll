@@ -94,6 +94,8 @@ python3 build-zip.py          # dist/pose-doll.zip を作る（テストとキ�
 python3 build-zip.py --check  # dist/pose-doll.zip が古ければ失敗する
 ```
 
+GitHub Actions が、push と pull request のたびに `--check` を実行します（`.github/workflows/zip-check.yml`）。
+
 ## ライセンス
 
 [MIT License](LICENSE)（Copyright (c) 2026 Sinme52）
