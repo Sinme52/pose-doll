@@ -1,0 +1,24 @@
+name: Tests
+
+# the skill's own tests (Node and Python), as in: cd pose-doll/scripts && npm test
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow (used by the Python tests)
+        run: python -m pip install pillow
+      # no npm install: three.js is bundled in scripts/node_modules, and an install would remove it
+      - name: npm test
+        working-directory: pose-doll/scripts
+        run: npm test
