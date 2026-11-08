@@ -40,7 +40,7 @@
   cp -r pose-doll/pose-doll ~/.claude/skills/
   ```
 - **Claude Code（プロジェクト用）**：`pose-doll/` をプロジェクトの `.claude/skills/` に置きます。
-- **claude.ai**：[`dist/pose-doll.zip`](https://github.com/Sinme52/pose-doll/raw/main/dist/pose-doll.zip) をダウンロードして、設定の「スキル」からアップロードします。
+- **claude.ai**：[`pose-doll.zip`](https://github.com/Sinme52/pose-doll/raw/main/pose-doll.zip) をダウンロードして、設定の「スキル」からアップロードします。
   - 同じ zip は Claude Code でも使えます。`~/.claude/skills/` に展開してください（中に `pose-doll/` フォルダが入っています）。
   - ただし描画にはブラウザ（Chromium）が必要です。claude.ai のチャット環境では動かないことがあります。
 
@@ -90,8 +90,8 @@ cd pose-doll/scripts && npm test   # Node のテストと Python のテスト
 `pose-doll/` の中を変えたら、スキルの zip を作り直して、変更と一緒にコミットします。
 
 ```bash
-python3 build-zip.py          # dist/pose-doll.zip を作る（テストとキャッシュは除く。同じファイルなら同じ zip になる）
-python3 build-zip.py --check  # dist/pose-doll.zip が古ければ失敗する
+python3 build-zip.py          # pose-doll.zip を作る（テストとキャッシュは除く。同じファイルなら同じ zip になる）
+python3 build-zip.py --check  # pose-doll.zip が古ければ失敗する
 ```
 
 GitHub Actions が、push と pull request のたびに `npm test`（`.github/workflows/tests.yml`）と `--check`（`.github/workflows/zip-check.yml`）を実行します。

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build dist/pose-doll.zip, the skill package to upload or unzip into a skills folder.
+"""Build pose-doll.zip, the skill package to upload or unzip into a skills folder.
 
-  python3 build-zip.py          # (re)build dist/pose-doll.zip
-  python3 build-zip.py --check  # exit 1 if dist/pose-doll.zip is missing or out of date
+  python3 build-zip.py          # (re)build pose-doll.zip
+  python3 build-zip.py --check  # exit 1 if pose-doll.zip is missing or out of date
 
 The zip holds the pose-doll/ folder (SKILL.md, LICENSE, scripts/) without tests and caches.
 It is reproducible: entries are sorted and carry a fixed date, so rebuilding unchanged
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SKILL = ROOT / 'pose-doll'
-OUT = ROOT / 'dist' / 'pose-doll.zip'
+OUT = ROOT / 'pose-doll.zip'
 FIXED_DATE = (2026, 1, 1, 0, 0, 0)
 SKIP_DIRS = {'test', '__pycache__', 'pose-doll-out', 'pose-doll-poses'}
 SKIP_NAMES = {'.DS_Store', 'package-lock.json'}
@@ -60,7 +60,7 @@ def entries(data):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument('--check', action='store_true', help='only check that dist/pose-doll.zip is up to date')
+    ap.add_argument('--check', action='store_true', help='only check that pose-doll.zip is up to date')
     args = ap.parse_args()
     data = build_bytes()
     if args.check:
@@ -69,7 +69,6 @@ def main():
             return
         print(f'{OUT.relative_to(ROOT)} is out of date: run python3 build-zip.py and commit it', file=sys.stderr)
         sys.exit(1)
-    OUT.parent.mkdir(exist_ok=True)
     OUT.write_bytes(data)
     with zipfile.ZipFile(OUT) as z:
         n = len(z.namelist())

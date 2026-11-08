@@ -5,7 +5,7 @@ __pycache__/
 *.pyc
 *.zip
 # the skill package is tracked (built by build-zip.py)
-!dist/pose-doll.zip
+!/pose-doll.zip
 .env
 .DS_Store
 # only the vendored three.js subset is tracked under node_modules
