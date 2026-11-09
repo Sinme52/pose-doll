@@ -265,7 +265,7 @@ python3 $SKILL/scripts/frames.py --character 'sprites/hero-{view}.webp' \
 ## 便利な使い方
 
 - **素手の歩行・走行のコマ**：`walk-a` と、それを `--mirror` で反転したもの（= `walk-b`）を同じカメラで作る。
-- **物を持った歩行のコマ**：`walk-ready-a` / `stand-ready` / `walk-ready-b`（ライフルを両手で低く構える）を使う。b は `--mirror legs` と同じ内容。
+- **物を持った歩行のコマ**：`walk-ready-a` / `stand-ready` / `walk-ready-b`（ライフルを両手で低く構える。右肘を後ろ外へ張り、グリップとトリガーの辺りを右腰に密着させ、左手もお腹の前に引き寄せる）を使う。b は `--mirror legs` と同じ内容。
 - **反転の種類**：`--mirror`（または `--mirror all`）は全身と持ち物を反転、`--mirror legs` は脚だけ反転する。脚だけの反転では腰のひねりも脚に合わせて反転し、胸で打ち消すので、上半身・腕・持ち物は動かない。
 - **剣と盾**：`sword-shield-ready`（片手剣を立て、盾を胸の前に構える）と、その歩き `walk-sword-shield-a/b`（b は脚だけ反転）。両手剣は `greatsword-guard`（中段）。
 - **プリセット一覧**：stand、stand-ready、walk-a、walk-b、walk-ready-a、walk-ready-b、sword-shield-ready、walk-sword-shield-a、walk-sword-shield-b、greatsword-guard、run、aim-rifle、hip-fire、wave、point-up、jump、crouch、kneel、hands-on-hips、punch、victory、sit、a-pose

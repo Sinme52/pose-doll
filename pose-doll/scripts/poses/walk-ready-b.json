@@ -1,6 +1,6 @@
 {
   "name": "walk-ready-b",
-  "intent": "walking mid-stride while holding a rifle at the ready low in front of the body with both hands (right hand on the grip, left hand under the barrel, muzzle pointing forward and slightly down); the character's own right leg forward (legs-only mirror of walk-ready-a)",
+  "intent": "walking mid-stride while holding a rifle at the ready low in front of the body with both hands, the right elbow drawn back and out to the side so the grip and trigger area is pressed against the right hip, the left elbow bent so the left hand stays close in front of the stomach (right hand on the grip, left hand under the barrel, muzzle pointing forward and slightly down); the character's own right leg forward (legs-only mirror of walk-ready-a)",
   "camera": {
     "view": "facing-lower-left"
   },
@@ -14,21 +14,22 @@
       "twist": -4
     },
     "rightShoulder": {
-      "raise": 15,
-      "dir": 20
+      "raise": 25,
+      "dir": 120,
+      "twist": -45
     },
     "rightElbow": {
-      "bend": 80
+      "bend": 90
     },
     "rightWrist": {
       "grip": 70
     },
     "leftShoulder": {
-      "raise": 48,
-      "dir": -22
+      "raise": 10,
+      "dir": -40
     },
     "leftElbow": {
-      "bend": 30
+      "bend": 60
     },
     "leftWrist": {
       "grip": 60
